@@ -45,6 +45,11 @@ class Status(object):
     status.created_at
     status.created_at_in_seconds # read only
     status.favorited
+    status.in_reply_to_screen_name
+    status.in_reply_to_user_id
+    status.in_reply_to_status_id
+    status.truncated
+    status.source
     status.id
     status.text
     status.relative_created_at # read only
@@ -56,6 +61,11 @@ class Status(object):
                id=None,
                text=None,
                user=None,
+               in_reply_to_screen_name=None,
+               in_reply_to_user_id=None,
+               in_reply_to_status_id=None,
+               truncated=None,
+               source=None,
                now=None):
     '''An object to hold a Twitter status message.
 
@@ -83,6 +93,11 @@ class Status(object):
     self.text = text
     self.user = user
     self.now = now
+    self.in_reply_to_screen_name = in_reply_to_screen_name
+    self.in_reply_to_user_id = in_reply_to_user_id
+    self.in_reply_to_status_id = in_reply_to_status_id
+    self.truncated = truncated
+    self.source = source
 
   def GetCreatedAt(self):
     '''Get the time this status message was posted.
@@ -152,6 +167,51 @@ class Status(object):
 
   id = property(GetId, SetId,
                 doc='The unique id of this status message.')
+
+  def GetInReplyToScreenName(self):
+    return self._in_reply_to_screen_name
+
+  def SetInReplyToScreenName(self, in_reply_to_screen_name):
+    self._in_reply_to_screen_name = in_reply_to_screen_name
+
+  in_reply_to_screen_name = property(GetInReplyToScreenName, SetInReplyToScreenName,
+                doc='')
+
+  def GetInReplyToUserId(self):
+    return self._in_reply_to_user_id
+
+  def SetInReplyToUserId(self, in_reply_to_user_id):
+    self._in_reply_to_user_id = in_reply_to_user_id
+
+  in_reply_to_user_id = property(GetInReplyToUserId, SetInReplyToUserId,
+                doc='')
+
+  def GetInReplyToStatusId(self):
+    return self._in_reply_to_status_id
+
+  def SetInReplyToStatusId(self, in_reply_to_status_id):
+    self._in_reply_to_status_id = in_reply_to_status_id
+
+  in_reply_to_status_id = property(GetInReplyToStatusId, SetInReplyToStatusId,
+                doc='')
+
+  def GetTruncated(self):
+    return self._truncated
+
+  def SetTruncated(self, truncated):
+    self._truncated = truncated
+
+  truncated = property(GetTruncated, SetTruncated,
+                doc='')
+
+  def GetSource(self):
+    return self._source
+
+  def SetSource(self, source):
+    self._source = source
+
+  source = property(GetSource, SetSource,
+                doc='')
 
   def GetText(self):
     '''Get the text of this status message.
@@ -260,7 +320,13 @@ class Status(object):
              self.created_at == other.created_at and \
              self.id == other.id and \
              self.text == other.text and \
-             self.user == other.user
+             self.user == other.user and \
+             self.in_reply_to_screen_name == other.in_reply_to_screen_name and \
+             self.in_reply_to_user_id == other.in_reply_to_user_id and \
+             self.in_reply_to_status_id == other.in_reply_to_status_id and \
+             self.truncated == other.truncated and \
+             self.favorited == other.favorited and \
+             self.source == other.source
     except AttributeError:
       return False
 
@@ -301,6 +367,18 @@ class Status(object):
       data['text'] = self.text
     if self.user:
       data['user'] = self.user.AsDict()
+    if self.in_reply_to_screen_name:
+      data['in_reply_to_screen_name'] = self.in_reply_to_screen_name
+    if self.in_reply_to_user_id:
+      data['in_reply_to_user_id'] = self.in_reply_to_user_id
+    if self.in_reply_to_status_id:
+      data['in_reply_to_status_id'] = self.in_reply_to_status_id
+    if self.truncated is not None:
+      data['truncated'] = self.truncated
+    if self.favorited is not None:
+      data['favorited'] = self.favorited
+    if self.source:
+      data['source'] = self.source
     return data
 
   @staticmethod
@@ -320,6 +398,11 @@ class Status(object):
                   favorited=data.get('favorited', None),
                   id=data.get('id', None),
                   text=data.get('text', None),
+                  in_reply_to_screen_name=data.get('in_reply_to_screen_name', None),
+                  in_reply_to_user_id=data.get('in_reply_to_user_id', None),
+                  in_reply_to_status_id=data.get('in_reply_to_status_id', None),
+                  truncated=data.get('truncated', None),
+                  source=data.get('source', None),
                   user=user)
 
 
@@ -334,8 +417,21 @@ class User(object):
     user.location
     user.description
     user.profile_image_url
+    user.profile_background_tile
+    user.profile_background_image_url
+    user.profile_sidebar_fill_color
+    user.profile_background_color
+    user.profile_link_color
+    user.profile_text_color
+    user.protected
+    user.utc_offset
+    user.time_zone
     user.url
     user.status
+    user.statuses_count
+    user.followers_count
+    user.friends_count
+    user.favourites_count
   '''
   def __init__(self,
                id=None,
@@ -344,6 +440,19 @@ class User(object):
                location=None,
                description=None,
                profile_image_url=None,
+               profile_background_tile=None,
+               profile_background_image_url=None,
+               profile_sidebar_fill_color=None,
+               profile_background_color=None,
+               profile_link_color=None,
+               profile_text_color=None,
+               protected=None,
+               utc_offset=None,
+               time_zone=None,
+               followers_count=None,
+               friends_count=None,
+               statuses_count=None,
+               favourites_count=None,
                url=None,
                status=None):
     self.id = id
@@ -352,6 +461,19 @@ class User(object):
     self.location = location
     self.description = description
     self.profile_image_url = profile_image_url
+    self.profile_background_tile = profile_background_tile
+    self.profile_background_image_url = profile_background_image_url
+    self.profile_sidebar_fill_color = profile_sidebar_fill_color
+    self.profile_background_color = profile_background_color
+    self.profile_link_color = profile_link_color
+    self.profile_text_color = profile_text_color
+    self.protected = protected
+    self.utc_offset = utc_offset
+    self.time_zone = time_zone
+    self.followers_count = followers_count
+    self.friends_count = friends_count
+    self.statuses_count = statuses_count
+    self.favourites_count = favourites_count
     self.url = url
     self.status = status
 
@@ -489,6 +611,100 @@ class User(object):
   profile_image_url= property(GetProfileImageUrl, SetProfileImageUrl,
                               doc='The url of the thumbnail of this user.')
 
+  def GetProfileBackgroundTile(self):
+    '''Boolean for whether to tile the profile background image.
+
+    Returns:
+      True if the background is to be tiled, False if not, None if unset.
+    '''
+    return self._profile_background_tile
+
+  def SetProfileBackgroundTile(self, profile_background_tile):
+    '''Set the boolean flag for whether to tile the profile background image.
+
+    Args:
+      profile_background_tile: Boolean flag for whether to tile or not.
+    '''
+    self._profile_background_tile = profile_background_tile
+
+  profile_background_tile = property(GetProfileBackgroundTile, SetProfileBackgroundTile,
+                                     doc='Boolean for whether to tile the background image.')
+
+  def GetProfileBackgroundImageUrl(self):
+    return self._profile_background_image_url
+
+  def SetProfileBackgroundImageUrl(self, profile_background_image_url):
+    self._profile_background_image_url = profile_background_image_url
+
+  profile_background_image_url = property(GetProfileBackgroundImageUrl, SetProfileBackgroundImageUrl,
+                                          doc='The url of the profile background of this user.')
+
+  def GetProfileSidebarFillColor(self):
+    return self._profile_sidebar_fill_color
+
+  def SetProfileSidebarFillColor(self, profile_sidebar_fill_color):
+    self._profile_sidebar_fill_color = profile_sidebar_fill_color
+
+  profile_sidebar_fill_color = property(GetProfileSidebarFillColor, SetProfileSidebarFillColor)
+
+  def GetProfileBackgroundColor(self):
+    return self._profile_background_color
+
+  def SetProfileBackgroundColor(self, profile_background_color):
+    self._profile_background_color = profile_background_color
+
+  profile_background_color = property(GetProfileBackgroundColor, SetProfileBackgroundColor)
+
+  def GetProfileLinkColor(self):
+    return self._profile_link_color
+
+  def SetProfileLinkColor(self, profile_link_color):
+    self._profile_link_color = profile_link_color
+
+  profile_link_color = property(GetProfileLinkColor, SetProfileLinkColor)
+
+  def GetProfileTextColor(self):
+    return self._profile_text_color
+
+  def SetProfileTextColor(self, profile_text_color):
+    self._profile_text_color = profile_text_color
+
+  profile_text_color = property(GetProfileTextColor, SetProfileTextColor)
+
+  def GetProtected(self):
+    return self._protected
+
+  def SetProtected(self, protected):
+    self._protected = protected
+
+  protected = property(GetProtected, SetProtected)
+
+  def GetUtcOffset(self):
+    return self._utc_offset
+
+  def SetUtcOffset(self, utc_offset):
+    self._utc_offset = utc_offset
+
+  utc_offset = property(GetUtcOffset, SetUtcOffset)
+
+  def GetTimeZone(self):
+    '''Returns the current time zone string for the user.
+
+    Returns:
+      The descriptive time zone string for the user.
+    '''
+    return self._time_zone
+
+  def SetTimeZone(self, time_zone):
+    '''Sets the user's time zone string.
+
+    Args:
+      time_zone: The descriptive time zone to assign for the user.
+    '''
+    self._time_zone = time_zone
+
+  time_zone = property(GetTimeZone, SetTimeZone)
+
   def GetStatus(self):
     '''Get the latest twitter.Status of this user.
 
@@ -508,6 +724,82 @@ class User(object):
   status = property(GetStatus, SetStatus,
                   doc='The latest twitter.Status of this user.')
 
+  def GetFriendsCount(self):
+    '''Get the friend count for this user.
+    
+    Returns:
+      The number of users this user has befriended.
+    '''
+    return self._friends_count
+
+  def SetFriendsCount(self, count):
+    '''Set the friend count for this user.
+
+    Args:
+      count: The number of users this user has befriended.
+    '''
+    self._friends_count = count
+
+  friends_count = property(GetFriendsCount, SetFriendsCount,
+                  doc='The number of friends for this user.')
+
+  def GetFollowersCount(self):
+    '''Get the follower count for this user.
+    
+    Returns:
+      The number of users following this user.
+    '''
+    return self._followers_count
+
+  def SetFollowersCount(self, count):
+    '''Set the follower count for this user.
+
+    Args:
+      count: The number of users following this user.
+    '''
+    self._followers_count = count
+
+  followers_count = property(GetFollowersCount, SetFollowersCount,
+                  doc='The number of users following this user.')
+
+  def GetStatusesCount(self):
+    '''Get the number of status updates for this user.
+    
+    Returns:
+      The number of status updates for this user.
+    '''
+    return self._statuses_count
+
+  def SetStatusesCount(self, count):
+    '''Set the status update count for this user.
+
+    Args:
+      count: The number of updates for this user.
+    '''
+    self._statuses_count = count
+
+  statuses_count = property(GetStatusesCount, SetStatusesCount,
+                  doc='The number of updates for this user.')
+
+  def GetFavouritesCount(self):
+    '''Get the number of favourites for this user.
+    
+    Returns:
+      The number of favourites for this user.
+    '''
+    return self._favourites_count
+
+  def SetFavouritesCount(self, count):
+    '''Set the favourite count for this user.
+
+    Args:
+      count: The number of favourites for this user.
+    '''
+    self._favourites_count = count
+
+  favourites_count = property(GetFavouritesCount, SetFavouritesCount,
+                  doc='The number of favourites for this user.')
+
   def __ne__(self, other):
     return not self.__eq__(other)
 
@@ -520,7 +812,20 @@ class User(object):
              self.location == other.location and \
              self.description == other.description and \
              self.profile_image_url == other.profile_image_url and \
+             self.profile_background_tile == other.profile_background_tile and \
+             self.profile_background_image_url == other.profile_background_image_url and \
+             self.profile_sidebar_fill_color == other.profile_sidebar_fill_color and \
+             self.profile_background_color == other.profile_background_color and \
+             self.profile_link_color == other.profile_link_color and \
+             self.profile_text_color == other.profile_text_color and \
+             self.protected == other.protected and \
+             self.utc_offset == other.utc_offset and \
+             self.time_zone == other.time_zone and \
              self.url == other.url and \
+             self.statuses_count == other.statuses_count and \
+             self.followers_count == other.followers_count and \
+             self.favourites_count == other.favourites_count and \
+             self.friends_count == other.friends_count and \
              self.status == other.status
     except AttributeError:
       return False
@@ -564,10 +869,34 @@ class User(object):
       data['description'] = self.description
     if self.profile_image_url:
       data['profile_image_url'] = self.profile_image_url
+    if self.profile_background_tile is not None:
+      data['profile_background_tile'] = self.profile_background_tile
+    if self.profile_background_image_url:
+      data['profile_sidebar_fill_color'] = self.profile_background_image_url
+    if self.profile_background_color:
+      data['profile_background_color'] = self.profile_background_color
+    if self.profile_link_color:
+      data['profile_link_color'] = self.profile_link_color
+    if self.profile_text_color:
+      data['profile_text_color'] = self.profile_text_color
+    if self.protected is not None:
+      data['protected'] = self.protected
+    if self.utc_offset:
+      data['utc_offset'] = self.utc_offset
+    if self.time_zone:
+      data['time_zone'] = self.time_zone
     if self.url:
       data['url'] = self.url
     if self.status:
       data['status'] = self.status.AsDict()
+    if self.friends_count:
+      data['friends_count'] = self.friends_count
+    if self.followers_count:
+      data['followers_count'] = self.followers_count
+    if self.statuses_count:
+      data['statuses_count'] = self.statuses_count
+    if self.favourites_count:
+      data['favourites_count'] = self.favourites_count
     return data
 
   @staticmethod
@@ -588,7 +917,20 @@ class User(object):
                 screen_name=data.get('screen_name', None),
                 location=data.get('location', None),
                 description=data.get('description', None),
+                statuses_count=data.get('statuses_count', None),
+                followers_count=data.get('followers_count', None),
+                favourites_count=data.get('favourites_count', None),
+                friends_count=data.get('friends_count', None),
                 profile_image_url=data.get('profile_image_url', None),
+                profile_background_tile = data.get('profile_background_tile', None),
+                profile_background_image_url = data.get('profile_background_image_url', None),
+                profile_sidebar_fill_color = data.get('profile_sidebar_fill_color', None),
+                profile_background_color = data.get('profile_background_color', None),
+                profile_link_color = data.get('profile_link_color', None),
+                profile_text_color = data.get('profile_text_color', None),
+                protected = data.get('protected', None),
+                utc_offset = data.get('utc_offset', None),
+                time_zone = data.get('time_zone', None),
                 url=data.get('url', None),
                 status=status)
 

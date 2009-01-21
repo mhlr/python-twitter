@@ -1,5 +1,9 @@
 2008-07-10
 
+  Added new properties to User and Status classes.
+  Removed spurious self-import of the twitter module
+  Added a NOTICE file
+  Require simplejson 2.x or later
   Added get/create/destroy favorite flags for status messages.
   Bug fix for non-tty devices.
 

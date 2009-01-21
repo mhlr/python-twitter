@@ -12,7 +12,7 @@ Source0:        http://python-twitter.googlecode.com/files/%{name}-%{version}.ta
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:      noarch
-Requires:       python >= 2.3, python-simplejson
+Requires:       python >= 2.3, python-simplejson >= 2.0.7
 BuildRequires:  python-setuptools
 
 

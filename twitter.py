@@ -31,7 +31,7 @@ import calendar
 import urllib
 import urllib2
 import urlparse
-import twitter
+
 
 class TwitterError(Exception):
   '''Base class for Twitter errors'''
@@ -1411,7 +1411,7 @@ class Api(object):
 
   def _InitializeUserAgent(self):
     user_agent = 'Python-urllib/%s (python-twitter/%s)' % \
-                 (self._urllib.__version__, twitter.__version__)
+                 (self._urllib.__version__, __version__)
     self.SetUserAgent(user_agent)
 
   def _InitializeDefaultParameters(self):

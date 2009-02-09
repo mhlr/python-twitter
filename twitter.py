@@ -1259,6 +1259,7 @@ class Api(object):
       >>> api.DestroyDirectMessage(id)
       >>> api.DestroyFriendship(user)
       >>> api.CreateFriendship(user)
+      >>> api.GetUserByEmail(email)
   '''
 
   DEFAULT_CACHE_TIMEOUT = 60 # cache for 1 minute
@@ -1640,6 +1641,19 @@ class Api(object):
     json = self._FetchUrl(url, post_data={})
     data = simplejson.loads(json)
     return Status.NewFromJsonDict(data)
+
+  def GetUserByEmail(self, email):
+    '''Returns a single user by email address.
+
+    Args:
+      email: The email of the user to retrieve.
+    Returns:
+      A twitter.User instance representing that user
+    '''
+    url = 'http://twitter.com/users/show.json?email=%s' % email
+    json = self._FetchUrl(url)
+    data = simplejson.loads(json)
+    return User.NewFromJsonDict(data)
 
   def SetCredentials(self, username, password):
     '''Set the username and password for this instance

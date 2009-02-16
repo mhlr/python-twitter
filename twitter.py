@@ -1519,7 +1519,7 @@ class Api(object):
     data = simplejson.loads(json)
     return User.NewFromJsonDict(data)
 
-  def GetDirectMessages(self, since=None):
+  def GetDirectMessages(self, since=None, since_id=None):
     '''Returns a list of the direct messages sent to the authenticating user.
 
     The twitter.Api instance must be authenticated.
@@ -1528,6 +1528,9 @@ class Api(object):
       since:
         Narrows the returned results to just those statuses created
         after the specified HTTP-formatted date. [optional]
+      since_id:
+        Returns only public statuses with an ID greater than (that is,
+        more recent than) the specified ID. [Optional]
 
     Returns:
       A sequence of twitter.DirectMessage instances
@@ -1538,6 +1541,8 @@ class Api(object):
     parameters = {}
     if since:
       parameters['since'] = since
+    if since_id:
+      parameters['since_id'] = since_id
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     return [DirectMessage.NewFromJsonDict(x) for x in data]

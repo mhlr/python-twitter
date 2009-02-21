@@ -21,13 +21,14 @@ __version__ = '0.6-devel'
 
 
 import base64
+import calendar
 import md5
 import os
+import rfc822
 import simplejson
 import sys
 import tempfile
 import time
-import calendar
 import urllib
 import urllib2
 import urlparse
@@ -124,7 +125,7 @@ class Status(object):
     Returns:
       The time this status message was posted, in seconds since the epoch.
     '''
-    return calendar.timegm(time.strptime(self.created_at, '%a %b %d %H:%M:%S +0000 %Y'))
+    return calendar.timegm(rfc822.parsedate(self.created_at))
 
   created_at_in_seconds = property(GetCreatedAtInSeconds,
                                    doc="The time this status message was "
@@ -1025,7 +1026,7 @@ class DirectMessage(object):
     Returns:
       The time this direct message was posted, in seconds since the epoch.
     '''
-    return calendar.timegm(time.strptime(self.created_at, '%a %b %d %H:%M:%S +0000 %Y'))
+    return calendar.timegm(rfc822.parsedate(self.created_at))
 
   created_at_in_seconds = property(GetCreatedAtInSeconds,
                                    doc="The time this direct message was "

@@ -1438,10 +1438,18 @@ class Api(object):
     data = simplejson.loads(json)
     return Status.NewFromJsonDict(data)
 
-  def GetReplies(self):
+  def GetReplies(self, since=None, since_id=None):
     '''Get a sequence of status messages representing the 20 most recent
     replies (status updates prefixed with @username) to the authenticating
     user.
+    
+    Args:
+      since:
+        Narrows the returned results to just those statuses created
+        after the specified HTTP-formatted date. [optional]
+      since_id:
+        Returns only public statuses with an ID greater than (that is,
+        more recent than) the specified ID. [Optional]
 
     Returns:
       A sequence of twitter.Status instances, one for each reply to the user.
@@ -1449,7 +1457,12 @@ class Api(object):
     url = 'http://twitter.com/statuses/replies.json'
     if not self._username:
       raise TwitterError("The twitter.Api instance must be authenticated.")
-    json = self._FetchUrl(url)
+    parameters = {}
+    if since:
+      parameters['since'] = since
+    if since_id:
+      parameters['since_id'] = since_id
+    json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     return [Status.NewFromJsonDict(x) for x in data]
 

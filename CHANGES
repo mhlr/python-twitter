@@ -1,3 +1,7 @@
+2009-02-20
+
+  Added since and since_id to Api.GetReplies
+
 2008-07-10
 
   Added new properties to User and Status classes.

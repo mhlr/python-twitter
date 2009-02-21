@@ -1862,11 +1862,11 @@ class Api(object):
 
     Args:
       url: The URL to retrieve
-      data: A dict of (str, unicode) key value pairs.  If set, POST will be used.
-      parameters: A dict of key/value pairs that should added to
-                  the query string. [OPTIONAL]
-      username: A HTTP Basic Auth username for this request
-      username: A HTTP Basic Auth password for this request
+      post_data: 
+        A dict of (str, unicode) key/value pairs.  If set, POST will be used.
+      parameters:
+        A dict whose key/value pairs should encoded and added 
+        to the query string. [OPTIONAL]
       no_cache: If true, overrides the cache on the current request
 
     Returns:

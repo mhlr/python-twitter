@@ -1,3 +1,7 @@
+2009-02-21
+
+  Wrap any error responses in a TwitterError
+
 2009-02-20
 
   Added since and since_id to Api.GetReplies

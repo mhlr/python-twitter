@@ -319,6 +319,19 @@ class ApiTest(unittest.TestCase):
     api.SetUrllib(self._urllib)
     self._api = api
 
+  def testTwitterError(self):
+    '''Test that twitter responses containing an error message are wrapped.'''
+    self._AddHandler('http://twitter.com/statuses/public_timeline.json',
+                     curry(self._OpenTestData, 'public_timeline_error.json'))
+    # Manually try/catch so we can check the exception's value
+    try:
+      statuses = self._api.GetPublicTimeline()
+    except twitter.TwitterError, error:
+      # If the error message matches, the test passes
+      self.assertEqual('test error', error.message)
+    else:
+      self.fail('TwitterError expected')
+
   def testGetPublicTimeline(self):
     '''Test the twitter.Api GetPublicTimeline method'''
     self._AddHandler('http://twitter.com/statuses/public_timeline.json?since_id=12345',

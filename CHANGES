@@ -1,6 +1,7 @@
 2009-02-21
 
   Wrap any error responses in a TwitterError
+  Add since_id to GetFriendsTimeline and GetUserTimeline
 
 2009-02-20
 

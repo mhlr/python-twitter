@@ -1,3 +1,7 @@
+2009-02-25
+
+  Add in_reply_to_status_id to api.PostUpdate
+
 2009-02-21
 
   Wrap any error responses in a TwitterError

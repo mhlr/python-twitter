@@ -1473,7 +1473,7 @@ class Api(object):
     self._CheckForTwitterError(data)
     return Status.NewFromJsonDict(data)
 
-  def PostUpdates(self, status, **kwargs):
+  def PostUpdates(self, status, continuation=None, **kwargs):
     '''Post one or more twitter status messages from the authenticated user.
 
     Unlike api.PostUpdate, this method will post multiple status updates
@@ -1484,14 +1484,24 @@ class Api(object):
     Args:
       status:
         The message text to be posted.  May be longer than 140 characters.
+      continuation:
+        The character string, if any, to be appended to all but the
+        last message.  Note that Twitter strips trailing '...' strings
+        from messages.  Consider using the unicode \u2026 character
+        (horizontal ellipsis) instead. [Defaults to None]
       **kwargs:
         See api.PostUpdate for a list of accepted parameters.
     Returns:
       A of list twitter.Status instance representing the messages posted.
     '''
     results = list()
-    for s in textwrap.wrap(status, CHARACTER_LIMIT):
-      results.append(self.PostUpdate(s, **kwargs))
+    if continuation is None:
+      continuation = ''
+    line_length = CHARACTER_LIMIT - len(continuation)
+    lines = textwrap.wrap(status, line_length)
+    for line in lines[0:-1]:
+      results.append(self.PostUpdate(line + continuation, **kwargs))
+    results.append(self.PostUpdate(lines[-1], **kwargs))
     return results
 
   def GetReplies(self, since=None, since_id=None):

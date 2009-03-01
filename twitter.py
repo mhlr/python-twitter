@@ -28,10 +28,14 @@ import rfc822
 import simplejson
 import sys
 import tempfile
+import textwrap
 import time
 import urllib
 import urllib2
 import urlparse
+
+
+CHARACTER_LIMIT = 140
 
 
 class TwitterError(Exception):
@@ -1245,6 +1249,7 @@ class Api(object):
 
     There are many other methods, including:
 
+      >>> api.PostUpdates(status)
       >>> api.PostDirectMessage(user, text)
       >>> api.GetUser(user)
       >>> api.GetReplies()
@@ -1433,36 +1438,61 @@ class Api(object):
     self._CheckForTwitterError(data)
     return Status.NewFromJsonDict(data)
 
-  def PostUpdate(self, text, in_reply_to_status_id=None):
+  def PostUpdate(self, status, in_reply_to_status_id=None):
     '''Post a twitter status message from the authenticated user.
 
     The twitter.Api instance must be authenticated.
 
     Args:
-      text:
-        The message text to be posted.  Must be less than 140 characters.
+      status:
+        The message text to be posted.  Must be less than or equal to
+        140 characters.
       in_reply_to_status_id:
         The ID of an existing status that the status to be posted is
         in reply to.  This implicitly sets the in_reply_to_user_id
         attribute of the resulting status to the user ID of the
         message being replied to.  Invalid/missing status IDs will be
         ignored. [Optional]
-
     Returns:
-      A twitter.Status instance representing the message posted
+      A twitter.Status instance representing the message posted.
     '''
     if not self._username:
       raise TwitterError("The twitter.Api instance must be authenticated.")
-    if len(text) > 140:
-      raise TwitterError("Text must be less than or equal to 140 characters.")
+
     url = 'http://twitter.com/statuses/update.json'
-    data = {'status': text}
+
+    if len(status) > CHARACTER_LIMIT:
+      raise TwitterError("Text must be less than or equal to %d characters. "
+                         "Consider using PostUpdates." % CHARACTER_LIMIT)
+
+    data = {'status': status}
     if in_reply_to_status_id:
       data['in_reply_to_status_id'] = in_reply_to_status_id
     json = self._FetchUrl(url, post_data=data)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return Status.NewFromJsonDict(data)
+
+  def PostUpdates(self, status, **kwargs):
+    '''Post one or more twitter status messages from the authenticated user.
+
+    Unlike api.PostUpdate, this method will post multiple status updates
+    if the message is longer than 140 characters.
+
+    The twitter.Api instance must be authenticated.
+
+    Args:
+      status:
+        The message text to be posted.  May be longer than 140 characters.
+      **kwargs:
+        See api.PostUpdate for a list of accepted parameters.
+    Returns:
+      A of list twitter.Status instance representing the messages posted.
+    '''
+    results = list()
+    for s in textwrap.wrap(status, CHARACTER_LIMIT):
+      results.append(self.PostUpdate(s, **kwargs))
+    return results
 
   def GetReplies(self, since=None, since_id=None):
     '''Get a sequence of status messages representing the 20 most recent
@@ -1961,6 +1991,7 @@ class Api(object):
 
     # Always return the latest version
     return url_data
+
 
 class _FileCacheError(Exception):
   '''Base exception class for FileCache related errors'''

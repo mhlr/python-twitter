@@ -1314,7 +1314,11 @@ class Api(object):
     self._CheckForTwitterError(data)
     return [Status.NewFromJsonDict(x) for x in data]
 
-  def GetFriendsTimeline(self, user=None, since=None, since_id=None):
+  def GetFriendsTimeline(self,
+                         user=None,
+                         count=None,
+                         since=None, 
+                         since_id=None):
     '''Fetch the sequence of twitter.Status messages for a user's friends
 
     The twitter.Api instance must be authenticated if the user is private.
@@ -1323,10 +1327,13 @@ class Api(object):
       user:
         Specifies the ID or screen name of the user for whom to return
         the friends_timeline.  If unspecified, the username and password
-        must be set in the twitter.Api instance.  [optional]
+        must be set in the twitter.Api instance.  [Optional]
+      count: 
+        Specifies the number of statuses to retrieve. May not be
+        greater than 200. [Optional]
       since:
         Narrows the returned results to just those statuses created
-        after the specified HTTP-formatted date. [optional]
+        after the specified HTTP-formatted date. [Optional]
       since_id:
         Returns only public statuses with an ID greater than (that is,
         more recent than) the specified ID. [Optional]
@@ -1341,6 +1348,13 @@ class Api(object):
     else:
       url = 'http://twitter.com/statuses/friends_timeline.json'
     parameters = {}
+    if count is not None:
+      try:
+        if int(count) > 200:
+          raise TwitterError("'count' may not be greater than 200")
+      except ValueError:
+        raise TwitterError("'count' must be an integer")
+      parameters['count'] = count
     if since:
       parameters['since'] = since
     if since_id:

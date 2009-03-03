@@ -1,3 +1,7 @@
+2009-03-03
+
+  Added count parameter to GetFriendsTimeline
+
 2009-03-01
   Add PostUpdates, which automatically splits long text into multiple updates.
 

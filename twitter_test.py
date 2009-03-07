@@ -491,12 +491,21 @@ class MockOpener(object):
 
   def __init__(self, handlers):
     self._handlers = handlers
+    self._opened = False
 
   def open(self, url, data=None):
+    if self._opened:
+      raise Exception('MockOpener already opened.')
     if url in self._handlers:
+      self._opened = True
       return self._handlers[url]()
     else:
       raise Exception('Unexpected URL %s' % url)
+
+  def close(self):
+    if not self._opened:
+      raise Exception('MockOpener closed before it was opened.')
+    self._opened = False
 
 class MockHTTPBasicAuthHandler(object):
   '''A mock replacement for HTTPBasicAuthHandler'''

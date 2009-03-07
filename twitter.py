@@ -1996,6 +1996,7 @@ class Api(object):
     # Open and return the URL immediately if we're not going to cache
     if encoded_post_data or no_cache or not self._cache or not self._cache_timeout:
       url_data = opener.open(url, encoded_post_data).read()
+      opener.close()
     else:
       # Unique keys are a combination of the url and the username
       if self._username:
@@ -2009,6 +2010,7 @@ class Api(object):
       # If the cached version is outdated then fetch another and store it
       if not last_cached or time.time() >= last_cached + self._cache_timeout:
         url_data = opener.open(url, encoded_post_data).read()
+        opener.close()
         self._cache.Set(key, url_data)
       else:
         url_data = self._cache.Get(key)

@@ -1,3 +1,7 @@
+2009-03-11
+
+ Added page parameter to GetReplies, GetFriends, GetFollowers, and GetDirectMessages
+
 2009-03-03
 
   Added count parameter to GetFriendsTimeline

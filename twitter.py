@@ -1518,12 +1518,13 @@ class Api(object):
     results.append(self.PostUpdate(lines[-1], **kwargs))
     return results
 
-  def GetReplies(self, since=None, since_id=None):
+  def GetReplies(self, since=None, since_id=None, page=None): 
     '''Get a sequence of status messages representing the 20 most recent
     replies (status updates prefixed with @username) to the authenticating
     user.
 
     Args:
+      page: 
       since:
         Narrows the returned results to just those statuses created
         after the specified HTTP-formatted date. [optional]
@@ -1542,12 +1543,14 @@ class Api(object):
       parameters['since'] = since
     if since_id:
       parameters['since_id'] = since_id
+    if page:
+      parameters['page'] = page
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return [Status.NewFromJsonDict(x) for x in data]
 
-  def GetFriends(self, user=None):
+  def GetFriends(self, user=None, page=None):
     '''Fetch the sequence of twitter.User instances, one for each friend.
 
     Args:
@@ -1562,15 +1565,18 @@ class Api(object):
     if not self._username:
       raise TwitterError("twitter.Api instance must be authenticated")
     if user:
-      url = 'http://twitter.com/statuses/friends/%s.json' % user
+      url = 'http://twitter.com/statuses/friends/%s.json' % user 
     else:
       url = 'http://twitter.com/statuses/friends.json'
-    json = self._FetchUrl(url)
+    parameters = {}
+    if page:
+      parameters['page'] = page
+    json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return [User.NewFromJsonDict(x) for x in data]
 
-  def GetFollowers(self):
+  def GetFollowers(self, page=None):
     '''Fetch the sequence of twitter.User instances, one for each follower
 
     The twitter.Api instance must be authenticated.
@@ -1581,7 +1587,10 @@ class Api(object):
     if not self._username:
       raise TwitterError("twitter.Api instance must be authenticated")
     url = 'http://twitter.com/statuses/followers.json'
-    json = self._FetchUrl(url)
+    parameters = {}
+    if page:
+      parameters['page'] = page
+    json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return [User.NewFromJsonDict(x) for x in data]
@@ -1617,7 +1626,7 @@ class Api(object):
     self._CheckForTwitterError(data)
     return User.NewFromJsonDict(data)
 
-  def GetDirectMessages(self, since=None, since_id=None):
+  def GetDirectMessages(self, since=None, since_id=None, page=None):
     '''Returns a list of the direct messages sent to the authenticating user.
 
     The twitter.Api instance must be authenticated.
@@ -1641,6 +1650,8 @@ class Api(object):
       parameters['since'] = since
     if since_id:
       parameters['since_id'] = since_id
+    if page:
+      parameters['page'] = page 
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)

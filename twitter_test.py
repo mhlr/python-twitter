@@ -384,24 +384,24 @@ class ApiTest(unittest.TestCase):
 
   def testGetReplies(self):
     '''Test the twitter.Api GetReplies method'''
-    self._AddHandler('http://twitter.com/statuses/replies.json',
+    self._AddHandler('http://twitter.com/statuses/replies.json?page=1',
                      curry(self._OpenTestData, 'replies.json'))
-    statuses = self._api.GetReplies()
+    statuses = self._api.GetReplies(page=1)
     self.assertEqual(36657062, statuses[0].id)
 
   def testGetFriends(self):
     '''Test the twitter.Api GetFriends method'''
-    self._AddHandler('http://twitter.com/statuses/friends.json',
+    self._AddHandler('http://twitter.com/statuses/friends.json?page=1',
                      curry(self._OpenTestData, 'friends.json'))
-    users = self._api.GetFriends()
+    users = self._api.GetFriends(page=1)
     buzz = [u.status for u in users if u.screen_name == 'buzz']
     self.assertEqual(89543882, buzz[0].id)
 
   def testGetFollowers(self):
     '''Test the twitter.Api GetFollowers method'''
-    self._AddHandler('http://twitter.com/statuses/followers.json',
+    self._AddHandler('http://twitter.com/statuses/followers.json?page=1',
                      curry(self._OpenTestData, 'followers.json'))
-    users = self._api.GetFollowers()
+    users = self._api.GetFollowers(page=1)
     # This is rather arbitrary, but spot checking is better than nothing
     alexkingorg = [u.status for u in users if u.screen_name == 'alexkingorg']
     self.assertEqual(89554432, alexkingorg[0].id)
@@ -417,9 +417,9 @@ class ApiTest(unittest.TestCase):
 
   def testGetDirectMessages(self):
     '''Test the twitter.Api GetDirectMessages method'''
-    self._AddHandler('http://twitter.com/direct_messages.json',
+    self._AddHandler('http://twitter.com/direct_messages.json?page=1',
                      curry(self._OpenTestData, 'direct_messages.json'))
-    statuses = self._api.GetDirectMessages()
+    statuses = self._api.GetDirectMessages(page=1)
     self.assertEqual(u'A légpárnás hajóm tele van angolnákkal.', statuses[0].text)
 
   def testPostDirectMessage(self):

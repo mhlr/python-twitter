@@ -20,6 +20,7 @@ USAGE = '''Usage: tweet [options] message
     -h --help : print this help
     --username : the twitter username [optional]
     --password : the twitter password [optional]
+    --encoding : the character set encoding used in input strings, e.g. "utf-8". [optional]
 
   Documentation:
 
@@ -108,7 +109,7 @@ def main():
     status = api.PostUpdate(message)
   except UnicodeDecodeError:
     print "Your message could not be encoded.  Perhaps it contains non-ASCII characters? "
-    print "Try explicitly specifying the encoding with the  it with the --encoding flag"
+    print "Try explicitly specifying the encoding with the --encoding flag"
     sys.exit(2)
   print "%s just posted: %s" % (status.user.name, status.text)
 

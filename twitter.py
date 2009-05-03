@@ -22,7 +22,6 @@ __version__ = '0.6-devel'
 
 import base64
 import calendar
-import md5
 import os
 import rfc822
 import simplejson
@@ -33,6 +32,11 @@ import time
 import urllib
 import urllib2
 import urlparse
+
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
 
 
 CHARACTER_LIMIT = 140
@@ -2113,7 +2117,11 @@ class _FileCache(object):
     self._root_directory = root_directory
 
   def _GetPath(self,key):
-    hashed_key = md5.new(key).hexdigest()
+    try:
+        hashed_key = md5(key).hexdigest()
+    except TypeError:
+        hashed_key = md5.new(key).hexdigest()
+        
     return os.path.join(self._root_directory,
                         self._GetPrefix(hashed_key),
                         hashed_key)

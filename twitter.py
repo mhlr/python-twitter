@@ -2038,6 +2038,55 @@ class Api(object):
     # Always return the latest version
     return url_data
 
+  def SearchTwitter(self, query, lang=None, rpp=50, 
+                      page=0, since_id=None, geocode=None, show_user=None):
+    '''Search Twitter
+        Args:
+          query: The search query
+          lang: 
+              Restricts tweets to the given language, given by an ISO 639-1 code.
+          rpp: 
+              The number of tweets to return per page, up to a max of 100
+          page:
+             The page number (starting at 1) to return, up to a max of roughly 1500 results.
+          since_id:
+             Returns tweets with status ids greater than the given id.
+          geocode:
+             Returns tweets by users located within a given radius of the given 
+             latitude/longitude, where the user's location is taken from their 
+             Twitter profile. The parameter value is specified by 
+             "latitide,longitude,radius", where radius units must be specified 
+             as either "mi" (miles) or "km" (kilometers).
+          show_user:
+             When true, prepends "<user>:" to the beginning of the tweet. 
+             This is useful for readers that do not display Atom's author field.
+        Returns:
+          ResultSet object, contains the results and other meta data.
+    '''
+    parameters = {}
+    parameters['q'] = query
+    if lang:
+      parameters['lang'] = lang
+    if rpp is not None:
+      try:
+        if int(rpp) > 100:
+          raise TwitterError("'rpp' may not be greater than 100")
+      except ValueError:
+        raise TwitterError("'rpp' must be an integer")
+      parameters['rpp'] = rpp
+    if page:
+      parameters['page'] = page
+    if since_id:
+      parameters['since_id'] = since_id
+    if geocode is not None:
+      parameters['geocode'] = geocode
+    if show_user is not None:
+      parameters['show_user'] = show_user
+    url = "http://search.twitter.com/search.json"
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    return ResultSet.NewFromJsonDict(data)
 
 class _FileCacheError(Exception):
   '''Base exception class for FileCache related errors'''
@@ -2128,3 +2177,380 @@ class _FileCache(object):
 
   def _GetPrefix(self,hashed_key):
     return os.path.sep.join(hashed_key[0:_FileCache.DEPTH])
+
+class ResultItem(Status):
+  '''A class representing the ResultItem in ResultSet used by the twitter API.
+  '''
+
+  def __init__(self,
+               created_at=None,
+               favorited=None,
+               id=None,
+               text=None,
+               user=None,
+               in_reply_to_screen_name=None,
+               in_reply_to_user_id=None,
+               in_reply_to_status_id=None,
+               truncated=None,
+               source=None,
+               now=None,
+               from_user=None,
+               from_user_id=None,
+               to_user=None,
+               to_user_id=None,
+               profile_image_url=None,
+               iso_language_code=None):
+    '''An object that holds ResultItem for ResultsSet of Twiter Search API.
+    '''
+    Status.__init__(self,
+                   created_at=created_at,
+                   favorited=favorited,
+                   id=id,
+                   text=text,
+                   user=user,
+                   in_reply_to_screen_name=in_reply_to_screen_name,
+                   in_reply_to_user_id=in_reply_to_user_id,
+                   in_reply_to_status_id=in_reply_to_status_id,
+                   truncated=truncated,
+                   source=source,
+                   now=now                    
+                    )
+    self.from_user = from_user
+    self.from_user_id = from_user_id
+    self.to_user = to_user
+    self.to_user_id = to_user_id
+    self.profile_image_url = profile_image_url
+    self.iso_language_code = iso_language_code 
+
+  def GetFromUser(self):
+    return self._from_user
+
+  def SetFromUser(self, from_user):
+    self._from_user = from_user
+
+  from_user = property(GetFromUser, SetFromUser,
+                        doc='')
+  
+  def GetFromUserId(self):
+    return self._from_user_id
+
+  def SetFromUserId(self, from_user_id):
+    self._from_user_id = from_user_id
+
+  from_user_id = property(GetFromUserId, SetFromUserId,
+                        doc='')  
+
+  def GetToUser(self):
+    return self._to_user
+
+  def SetToUser(self, to_user):
+    self._to_user = to_user
+
+  to_user = property(GetToUser, SetToUser,
+                        doc='')  
+  def GetToUserId(self):
+    return self._to_user_id
+
+  def SetToUserId(self, to_user_id):
+    self._to_user_id = to_user_id
+
+  to_user_id = property(GetToUserId, SetToUserId,
+                        doc='')
+  def GetProfileImageUrl(self):
+    return self._profile_image_url
+
+  def SetProfileImageUrl(self, profile_image_url):
+    self._profile_image_url = profile_image_url
+
+  profile_image_url = property(GetProfileImageUrl, SetProfileImageUrl,
+                        doc='')
+  def GetISOLanguageCode(self):
+    return self._iso_language_code
+
+  def SetISOLanguageCode(self, iso_language_code):
+    self._iso_language_code = iso_language_code
+
+  iso_language_code = property(GetISOLanguageCode, SetISOLanguageCode,
+                        doc='')
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
+  def __eq__(self, other):
+    '''will fix it later'''
+    try:
+      return Status.__eq__(self, other) and \
+            self.from_user == other.from_user and \
+            self.from_user_id == other.from_user_id and \
+            self.to_user == other.to_user and \
+            self.to_user_id == other.to_user_id and \
+            self.profile_image_url == other.profile_image_url and \
+            self.iso_language_code == other.iso_language_code
+    except AttributeError:
+      return False
+
+  def AsDict(self):
+    '''A dict representation of this ResultItem instance.
+
+    The return value uses the same key names as the JSON representation.
+
+    Return:
+      A dict representing this ResultItem instance
+    '''
+    data = Status.AsDict(self)
+    if self.from_user:
+      data['from_user'] = self.from_user
+    if self.from_user_id:
+      data['from_user_id'] = self.from_user_id
+    if self.profile_image_url:
+      data['profile_image_url'] = self.profile_image_url
+    if self.in_reply_to_screen_name:
+      data['to_user'] = self.to_user
+    if self.in_reply_to_user_id:
+      data['to_user_id'] = self.to_user_id
+    if self.iso_language_code:
+      data['iso_language_code'] = self.iso_language_code
+    return data
+
+  @staticmethod
+  def NewFromJsonDict(data):
+    '''Create a new instance based on a JSON dict.
+
+    Args:
+      data: A JSON dict, as converted from the JSON in the twitter API
+    Returns:
+      A SearchResult instance
+    '''
+    if 'user' in data:
+      user = User.NewFromJsonDict(data['user'])
+    else:
+      user = None
+    return ResultItem(created_at=data.get('created_at', None),
+                  favorited=data.get('favorited', None),
+                  id=data.get('id', None),
+                  text=data.get('text', None),
+                  in_reply_to_screen_name=data.get('in_reply_to_screen_name', None),
+                  in_reply_to_user_id=data.get('in_reply_to_user_id', None),
+                  in_reply_to_status_id=data.get('in_reply_to_status_id', None),
+                  truncated=data.get('truncated', None),
+                  source=data.get('source', None),
+                  user=user,
+                  from_user=data.get('from_user', None),
+                  from_user_id=data.get('from_user_id', None),
+                  to_user=data.get('to_user', None),
+                  to_user_id=data.get('to_user_id', None),
+                  profile_image_url=data.get('profile_image_url', None),
+                  iso_language_code=data.get('iso_language_code', None)
+                  )
+
+
+class ResultSet(object):
+  '''A class representing the ResultSet structure used by the twitter API.
+
+  The ResultSet structure exposes the following properties:
+
+    resultset.next_page
+    resultset.completed_in
+    resultset.refresh_url
+    resultset.results
+    resultset.since_id
+    resultset.results_per_page
+    resultset.query
+    resultset.max_id
+    resultset.page
+  '''
+  def __init__(self,
+               next_page=None,
+               completed_in=None,
+               refresh_url=None,
+               results=None,
+               since_id=None,
+               results_per_page=None,
+               query=None,
+               max_id=None,
+               page=None):
+    '''An object to hold a Twitter search result set.
+
+    This class is normally instantiated by the twitter.Api class and
+    returned in a sequence.
+
+    Args:
+      next_page: The query string to fetch the next page
+      completed_in: Duration in which the search was completed on twitter server
+      refresh_url: The query string to refresh the same page
+      results: hold the matched tweets
+      ... add more later...
+    '''
+    self.next_page = next_page
+    self.completed_in = completed_in
+    self.refresh_url = refresh_url
+    self.results = results
+    self.since_id = since_id
+    self.results_per_page = results_per_page
+    self.query = query
+    self.max_id = max_id
+    self.page = page
+
+  def GetNextPage(self):
+    return self._next_page
+
+  def SetNextPage(self, next_page):
+    self._next_page = next_page
+
+  next_page = property(GetNextPage, SetNextPage,
+                        doc='The time this status message was posted.')
+
+  def GetCompletedIn(self):
+    return self._completed_in
+
+  def SetCompletedIn(self, completed_in):
+    self._completed_in = completed_in
+
+  completed_in = property(GetCompletedIn, SetCompletedIn,
+                       doc='The favorited state of this status message.')
+
+  def GetRefreshUrl(self):
+    return self._refresh_url
+
+  def SetRefreshUrl(self, refresh_url):
+    self._refresh_url = refresh_url
+
+  refresh_url = property(GetRefreshUrl, SetRefreshUrl,
+                doc='The unique id of this status message.')
+
+  def GetResults(self):
+    return self._results
+
+  def SetResults(self, results):
+    self._results = [ResultItem.NewFromJsonDict(data) for data in results]
+
+  results = property(GetResults, SetResults,
+                doc='')
+
+  def GetSinceId(self):
+    return self._since_id
+
+  def SetSinceId(self, since_id):
+    self._since_id = since_id
+
+  since_id = property(GetSinceId, SetSinceId,
+                doc='')
+
+  def GetResultsPerPage(self):
+    return self._results_per_page
+
+  def SetResultsPerPage(self, results_per_page):
+    self._results_per_page = results_per_page
+
+  results_per_page = property(GetResultsPerPage, SetResultsPerPage,
+                doc='')
+
+  def GetQuery(self):
+    return self._query
+
+  def SetQuery(self, query):
+    self._query = query
+
+  query = property(GetQuery, SetQuery,
+                doc='')
+
+  def GetMaxId(self):
+    return self._max_id
+
+  def SetMaxId(self, max_id):
+    self._max_id = max_id
+
+  max_id = property(GetMaxId, SetMaxId,
+                doc='')
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
+  def __eq__(self, other):
+    '''will fix it later'''
+    try:
+      return other and \
+            self.next_page == other.next_page and \
+            self.completed_in == other.completed_in and \
+            self.refresh_url == other.refresh_url and \
+            self.results == other.results and \
+            self.since_id == other.since_id and \
+            self.results_per_page == other.results_per_page and \
+            self.query == other.query and \
+            self.max_id == other.max_id and \
+            self.page == other.page
+    except AttributeError:
+      return False
+
+  def __str__(self):
+    '''A string representation of this twitter.Status instance.
+
+    The return value is the same as the JSON string representation.
+
+    Returns:
+      A string representation of this twitter.Status instance.
+    '''
+    return self.AsJsonString()
+
+  def AsJsonString(self):
+    '''A JSON string representation of this twitter.Status instance.
+
+    Returns:
+      A JSON string representation of this twitter.Status instance
+   '''
+    return simplejson.dumps(self.AsDict(), sort_keys=True)
+
+  def ResultsAsDict(self):
+    '''Returns list of resultitems as dicts
+    '''
+    return [result.AsDict() for result in self.results]
+        
+
+  def AsDict(self):
+    '''A dict representation of this twitter.Status instance.
+
+    The return value uses the same key names as the JSON representation.
+
+    Return:
+      A dict representing this twitter.Status instance
+    '''
+    data = {}
+    if self.next_page:
+      data['next_page'] = self.next_page
+    if self.completed_in:
+      data['completed_in'] = self.completed_in
+    if self.refresh_url:
+      data['refresh_url'] = self.refresh_url
+    if self.results:
+      data['results'] = self.ResultsAsDict()
+    if self.since_id is not None:
+      data['since_id'] = self.since_id
+    if self.results_per_page is not None:
+      data['results_per_page'] = self.results_per_page
+    if self.query:
+      data['query'] = self.query
+    if self.max_id:
+      data['max_id'] = self.max_id
+    if self.page:
+      data['page'] = self.page      
+    return data
+
+  @staticmethod
+  def NewFromJsonDict(data):
+    '''Create a new instance based on a JSON dict.
+
+    Args:
+      data: A JSON dict, as converted from the JSON in the twitter API
+    Returns:
+      A ResultSet instance
+    '''
+    return ResultSet(next_page=data.get('next_page', None),
+                   completed_in=data.get('completed_in', None),
+                   refresh_url=data.get('refresh_url', None),
+                   results=data.get('results', None),
+                   since_id=data.get('since_id', None),
+                   results_per_page=data.get('results_per_page', None),
+                   query=data.get('query', None),
+                   max_id=data.get('max_id', None),
+                   page=data.get('page', None))
+

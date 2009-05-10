@@ -1,0 +1,159 @@
+package twitter;
+
+option java_package = "net.unto.twitter";
+option java_outer_classname = "TwitterProtos";
+       
+message User {
+  // a permanent unique id referencing an object, such as user or status
+  optional uint64 id = 1;
+  // full name of a registered user
+  optional string name = 2;
+  // display name for a user
+  optional string screen_name = 3;
+  // user specified string representing where they are from
+  optional string location = 4;
+  // 160 characters or less of text that describes a user
+  optional string description = 5;
+  optional Profile profile = 6;
+  // user's homepage
+  optional string url = 7;
+  // boolean indicating if a user has a protected profile
+  optional bool protected = 8;
+  // number of users following a user's updates
+  optional uint32 followers_count = 9;
+  // number of users a user is following
+  optional uint32 friends_count = 10;
+  // timestamp of element creation, either status or user
+  optional string created_at = 11;
+  // number of statuses a user has marked as favorite
+  optional uint32 favorites_count = 12;
+  // number of seconds between a user's registered time zone and Coordinated Universal Time
+  optional sint32 utc_offset = 13;
+  // a user's time zone
+  optional string time_zone = 14;
+  // boolean indicating if a user is following a given user
+  optional bool following = 15;
+  // boolean indicating if a user is receiving device updates for a given user
+  optional bool notifications = 16;
+  // the total number of status updates performed by a user, excluding direct messages sent
+  optional uint32 statuses_count = 17;
+  optional Status status = 18;
+
+  message Profile {
+    // location to a user's avatar file
+    optional string image_url = 1;
+    // hex RGB value for a user's background color
+    optional string background_color = 2;
+    // hex RGB value for a user's text color
+    optional string text_color = 3;
+    // hex RGB value for a user's link color
+    optional string link_color = 4;
+    // hex RGB value for a user's sidebar color
+    optional string sidebar_fill_color = 5;
+    // hex RGB value for a user's border color   
+    optional string sidebar_border_color = 6; 
+  }
+}
+
+message Status {
+  // timestamp of element creation, either status or user
+  optional string created_at = 1;
+  // a permanent unique id referencing an object, such as user or status
+  optional uint64 id = 2;
+  // escaped and HTML encoded status body
+  optional string text = 3;
+  // application that sent a status
+  optional string source = 4;
+  // boolean indicating if a status required shortening
+  optional bool truncated = 5;
+  // unique id for the status a status replies to (see id)
+  optional uint64 in_reply_to_status_id = 6;
+  // unique id for the user that wrote the status a status replies to (see id)
+  optional uint64 in_reply_to_user_id = 7;
+  // boolean indicating if a status has been marked as a favorite
+  optional bool favorited = 8;
+  optional User user = 9;
+}
+
+message DirectMessage {
+  // a permanent unique id referencing an object, such as user or status
+  optional uint64 id = 1;
+  // escaped and HTML encoded status body
+  optional string text = 2;
+  // unique id of the user that sent a direct message (see id)
+  optional uint64 sender_id = 3;
+  // unique id of the user that received a direct message (see id)
+  optional uint64 recipient_id = 4;
+  // timestamp of element creation, either status or user
+  optional string created_at = 5;
+  // display name of the user that sent a direct message (see screen_name)
+  optional string sender_screen_name = 6;
+  // display name of the user that sent a direct message (see screen_name)
+  optional string recipient_screen_name = 7;
+  optional User sender = 8;
+  optional User recipient = 9;
+}
+
+enum Device {
+  NONE = 0;
+  SMS = 1;
+  IM = 2;
+}
+
+message Trends {
+  optional string as_of = 1;
+  repeated Trend trends = 2;
+  
+  message Trend {
+    optional string name = 1;
+    optional string url = 2;
+  }
+}
+
+message Results {
+  optional double completed_in = 1;
+  optional uint64 max_id = 2;
+  optional string next_page = 3;
+  optional uint32 page = 4;
+  optional string query = 5;
+  optional string refresh_url = 6;
+  repeated Result results = 7;
+  
+  message Result {
+    optional string created_at = 1;
+    optional string from_user = 2;
+    optional uint64 from_user_id = 3;
+    optional uint64 id = 4;
+    optional string iso_language_code = 5;
+    optional string profile_image_url = 6;
+    optional string source = 7;
+    optional string text = 8;
+    optional string to_user = 9;
+    optional uint64 to_user_id = 10;
+    optional sint32 results_per_page = 11;
+    optional uint64 since_id = 12;
+  }
+}
+
+message Geocode {
+  required double latitude = 1;
+  required double longitude = 2;
+  required uint32 radius = 3;
+  required Unit unit = 4;
+  
+  enum Unit {
+    MILES = 0;
+    KILOMETERS = 1;
+  }
+}
+
+message RateLimitStatus {
+  // maximum number of API calls a user is allowed in an hour
+  optional sint32 hourly_limit = 1;
+  // time when a user's API call allocation resets
+  optional string reset_time = 2;
+  // Unix time when a user's API call allocation resets
+  optional uint64 reset_time_in_seconds = 3;
+  // number of API calls remaining for a user
+  optional uint64 remaining_hits = 4;
+}

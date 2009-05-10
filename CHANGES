@@ -1,3 +1,9 @@
+2009-05-10
+
+ Replaced hand-written Status, User, and DirectMessage objects with auto-generated Protocol Buffer objects
+ The status.created_at_in_seconds method is replaced by twitter.ComputeCreatedAtInSeconds(status)
+ The status.relative_created_at is replaced by twitter.ComputeRelativeCreatedAt(status)
+
 2009-05-03
 
  Support hashlib in addition to the older md5 library.

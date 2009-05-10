@@ -33,10 +33,12 @@ import urllib
 import urllib2
 import urlparse
 
+import twitter_pb2
+
 try:
-    from hashlib import md5
+  from hashlib import md5
 except ImportError:
-    from md5 import md5
+  from md5 import md5
 
 
 CHARACTER_LIMIT = 140
@@ -51,1170 +53,156 @@ class TwitterError(Exception):
     return self.args[0]
 
 
-class Status(object):
-  '''A class representing the Status structure used by the twitter API.
+def _CopyProperty(source, destination, name, destination_name=None):
+  '''Optionally copies a property from source to destination.
 
-  The Status structure exposes the following properties:
+  Properties will be copied if and only if they appear in the dict
+  and are not None.
 
-    status.created_at
-    status.created_at_in_seconds # read only
-    status.favorited
-    status.in_reply_to_screen_name
-    status.in_reply_to_user_id
-    status.in_reply_to_status_id
-    status.truncated
-    status.source
-    status.id
-    status.text
-    status.relative_created_at # read only
-    status.user
+  Args:
+    source: A python dict
+    destination: A python object with a property accessor
+    name: The name of the source property
+    destination_name: The name of the destination property, if different from name
   '''
-  def __init__(self,
-               created_at=None,
-               favorited=None,
-               id=None,
-               text=None,
-               user=None,
-               in_reply_to_screen_name=None,
-               in_reply_to_user_id=None,
-               in_reply_to_status_id=None,
-               truncated=None,
-               source=None,
-               now=None):
-    '''An object to hold a Twitter status message.
-
-    This class is normally instantiated by the twitter.Api class and
-    returned in a sequence.
-
-    Note: Dates are posted in the form "Sat Jan 27 04:17:38 +0000 2007"
-
-    Args:
-      created_at: The time this status message was posted
-      favorited: Whether this is a favorite of the authenticated user
-      id: The unique id of this status message
-      text: The text of this status message
-      relative_created_at:
-        A human readable string representing the posting time
-      user:
-        A twitter.User instance representing the person posting the message
-      now:
-        The current time, if the client choses to set it.  Defaults to the
-        wall clock time.
-    '''
-    self.created_at = created_at
-    self.favorited = favorited
-    self.id = id
-    self.text = text
-    self.user = user
-    self.now = now
-    self.in_reply_to_screen_name = in_reply_to_screen_name
-    self.in_reply_to_user_id = in_reply_to_user_id
-    self.in_reply_to_status_id = in_reply_to_status_id
-    self.truncated = truncated
-    self.source = source
-
-  def GetCreatedAt(self):
-    '''Get the time this status message was posted.
-
-    Returns:
-      The time this status message was posted
-    '''
-    return self._created_at
-
-  def SetCreatedAt(self, created_at):
-    '''Set the time this status message was posted.
-
-    Args:
-      created_at: The time this status message was created
-    '''
-    self._created_at = created_at
-
-  created_at = property(GetCreatedAt, SetCreatedAt,
-                        doc='The time this status message was posted.')
-
-  def GetCreatedAtInSeconds(self):
-    '''Get the time this status message was posted, in seconds since the epoch.
-
-    Returns:
-      The time this status message was posted, in seconds since the epoch.
-    '''
-    return calendar.timegm(rfc822.parsedate(self.created_at))
-
-  created_at_in_seconds = property(GetCreatedAtInSeconds,
-                                   doc="The time this status message was "
-                                       "posted, in seconds since the epoch")
-
-  def GetFavorited(self):
-    '''Get the favorited setting of this status message.
-
-    Returns:
-      True if this status message is favorited; False otherwise
-    '''
-    return self._favorited
-
-  def SetFavorited(self, favorited):
-    '''Set the favorited state of this status message.
-
-    Args:
-      favorited: boolean True/False favorited state of this status message
-    '''
-    self._favorited = favorited
-
-  favorited = property(GetFavorited, SetFavorited,
-                       doc='The favorited state of this status message.')
-
-  def GetId(self):
-    '''Get the unique id of this status message.
-
-    Returns:
-      The unique id of this status message
-    '''
-    return self._id
-
-  def SetId(self, id):
-    '''Set the unique id of this status message.
-
-    Args:
-      id: The unique id of this status message
-    '''
-    self._id = id
-
-  id = property(GetId, SetId,
-                doc='The unique id of this status message.')
-
-  def GetInReplyToScreenName(self):
-    return self._in_reply_to_screen_name
-
-  def SetInReplyToScreenName(self, in_reply_to_screen_name):
-    self._in_reply_to_screen_name = in_reply_to_screen_name
-
-  in_reply_to_screen_name = property(GetInReplyToScreenName, SetInReplyToScreenName,
-                doc='')
-
-  def GetInReplyToUserId(self):
-    return self._in_reply_to_user_id
-
-  def SetInReplyToUserId(self, in_reply_to_user_id):
-    self._in_reply_to_user_id = in_reply_to_user_id
-
-  in_reply_to_user_id = property(GetInReplyToUserId, SetInReplyToUserId,
-                doc='')
-
-  def GetInReplyToStatusId(self):
-    return self._in_reply_to_status_id
-
-  def SetInReplyToStatusId(self, in_reply_to_status_id):
-    self._in_reply_to_status_id = in_reply_to_status_id
-
-  in_reply_to_status_id = property(GetInReplyToStatusId, SetInReplyToStatusId,
-                doc='')
-
-  def GetTruncated(self):
-    return self._truncated
-
-  def SetTruncated(self, truncated):
-    self._truncated = truncated
-
-  truncated = property(GetTruncated, SetTruncated,
-                doc='')
-
-  def GetSource(self):
-    return self._source
-
-  def SetSource(self, source):
-    self._source = source
-
-  source = property(GetSource, SetSource,
-                doc='')
-
-  def GetText(self):
-    '''Get the text of this status message.
-
-    Returns:
-      The text of this status message.
-    '''
-    return self._text
-
-  def SetText(self, text):
-    '''Set the text of this status message.
-
-    Args:
-      text: The text of this status message
-    '''
-    self._text = text
-
-  text = property(GetText, SetText,
-                  doc='The text of this status message')
-
-  def GetRelativeCreatedAt(self):
-    '''Get a human redable string representing the posting time
-
-    Returns:
-      A human readable string representing the posting time
-    '''
-    fudge = 1.25
-    delta  = int(self.now) - int(self.created_at_in_seconds)
-
-    if delta < (1 * fudge):
-      return 'about a second ago'
-    elif delta < (60 * (1/fudge)):
-      return 'about %d seconds ago' % (delta)
-    elif delta < (60 * fudge):
-      return 'about a minute ago'
-    elif delta < (60 * 60 * (1/fudge)):
-      return 'about %d minutes ago' % (delta / 60)
-    elif delta < (60 * 60 * fudge):
-      return 'about an hour ago'
-    elif delta < (60 * 60 * 24 * (1/fudge)):
-      return 'about %d hours ago' % (delta / (60 * 60))
-    elif delta < (60 * 60 * 24 * fudge):
-      return 'about a day ago'
-    else:
-      return 'about %d days ago' % (delta / (60 * 60 * 24))
-
-  relative_created_at = property(GetRelativeCreatedAt,
-                                 doc='Get a human readable string representing'
-                                     'the posting time')
-
-  def GetUser(self):
-    '''Get a twitter.User reprenting the entity posting this status message.
-
-    Returns:
-      A twitter.User reprenting the entity posting this status message
-    '''
-    return self._user
-
-  def SetUser(self, user):
-    '''Set a twitter.User reprenting the entity posting this status message.
-
-    Args:
-      user: A twitter.User reprenting the entity posting this status message
-    '''
-    self._user = user
-
-  user = property(GetUser, SetUser,
-                  doc='A twitter.User reprenting the entity posting this '
-                      'status message')
-
-  def GetNow(self):
-    '''Get the wallclock time for this status message.
-
-    Used to calculate relative_created_at.  Defaults to the time
-    the object was instantiated.
-
-    Returns:
-      Whatever the status instance believes the current time to be,
-      in seconds since the epoch.
-    '''
-    if self._now is None:
-      self._now = time.time()
-    return self._now
-
-  def SetNow(self, now):
-    '''Set the wallclock time for this status message.
-
-    Used to calculate relative_created_at.  Defaults to the time
-    the object was instantiated.
-
-    Args:
-      now: The wallclock time for this instance.
-    '''
-    self._now = now
-
-  now = property(GetNow, SetNow,
-                 doc='The wallclock time for this status instance.')
-
-
-  def __ne__(self, other):
-    return not self.__eq__(other)
-
-  def __eq__(self, other):
-    try:
-      return other and \
-             self.created_at == other.created_at and \
-             self.id == other.id and \
-             self.text == other.text and \
-             self.user == other.user and \
-             self.in_reply_to_screen_name == other.in_reply_to_screen_name and \
-             self.in_reply_to_user_id == other.in_reply_to_user_id and \
-             self.in_reply_to_status_id == other.in_reply_to_status_id and \
-             self.truncated == other.truncated and \
-             self.favorited == other.favorited and \
-             self.source == other.source
-    except AttributeError:
-      return False
-
-  def __str__(self):
-    '''A string representation of this twitter.Status instance.
-
-    The return value is the same as the JSON string representation.
-
-    Returns:
-      A string representation of this twitter.Status instance.
-    '''
-    return self.AsJsonString()
-
-  def AsJsonString(self):
-    '''A JSON string representation of this twitter.Status instance.
-
-    Returns:
-      A JSON string representation of this twitter.Status instance
-   '''
-    return simplejson.dumps(self.AsDict(), sort_keys=True)
-
-  def AsDict(self):
-    '''A dict representation of this twitter.Status instance.
-
-    The return value uses the same key names as the JSON representation.
-
-    Return:
-      A dict representing this twitter.Status instance
-    '''
-    data = {}
-    if self.created_at:
-      data['created_at'] = self.created_at
-    if self.favorited:
-      data['favorited'] = self.favorited
-    if self.id:
-      data['id'] = self.id
-    if self.text:
-      data['text'] = self.text
-    if self.user:
-      data['user'] = self.user.AsDict()
-    if self.in_reply_to_screen_name:
-      data['in_reply_to_screen_name'] = self.in_reply_to_screen_name
-    if self.in_reply_to_user_id:
-      data['in_reply_to_user_id'] = self.in_reply_to_user_id
-    if self.in_reply_to_status_id:
-      data['in_reply_to_status_id'] = self.in_reply_to_status_id
-    if self.truncated is not None:
-      data['truncated'] = self.truncated
-    if self.favorited is not None:
-      data['favorited'] = self.favorited
-    if self.source:
-      data['source'] = self.source
-    return data
-
-  @staticmethod
-  def NewFromJsonDict(data):
-    '''Create a new instance based on a JSON dict.
-
-    Args:
-      data: A JSON dict, as converted from the JSON in the twitter API
-    Returns:
-      A twitter.Status instance
-    '''
-    if 'user' in data:
-      user = User.NewFromJsonDict(data['user'])
-    else:
-      user = None
-    return Status(created_at=data.get('created_at', None),
-                  favorited=data.get('favorited', None),
-                  id=data.get('id', None),
-                  text=data.get('text', None),
-                  in_reply_to_screen_name=data.get('in_reply_to_screen_name', None),
-                  in_reply_to_user_id=data.get('in_reply_to_user_id', None),
-                  in_reply_to_status_id=data.get('in_reply_to_status_id', None),
-                  truncated=data.get('truncated', None),
-                  source=data.get('source', None),
-                  user=user)
-
-
-class User(object):
-  '''A class representing the User structure used by the twitter API.
-
-  The User structure exposes the following properties:
-
-    user.id
-    user.name
-    user.screen_name
-    user.location
-    user.description
-    user.profile_image_url
-    user.profile_background_tile
-    user.profile_background_image_url
-    user.profile_sidebar_fill_color
-    user.profile_background_color
-    user.profile_link_color
-    user.profile_text_color
-    user.protected
-    user.utc_offset
-    user.time_zone
-    user.url
-    user.status
-    user.statuses_count
-    user.followers_count
-    user.friends_count
-    user.favourites_count
+  if destination_name is None:
+    destination_name = name
+  try:
+    value = source[name]
+    if value is not None:
+      # If the destination_name has one or more '.' in it
+      # traverse the destination object downward to find
+      # the actual destination object and property name
+      parts = destination_name.split('.')
+      for part in parts[0:-1]:
+        destination = getattr(destination, part)
+        destination_name = parts[-1]
+      setattr(destination, destination_name, value)
+  except KeyError:
+    # source property not found
+    pass
+
+
+def NewStatusFromJsonDict(data):
+  '''Create a new Status instance based on a JSON dict.
+
+  Args:
+    data: A JSON dict, as parsed from a twitter API response
+  Returns:
+    A Status instance
   '''
-  def __init__(self,
-               id=None,
-               name=None,
-               screen_name=None,
-               location=None,
-               description=None,
-               profile_image_url=None,
-               profile_background_tile=None,
-               profile_background_image_url=None,
-               profile_sidebar_fill_color=None,
-               profile_background_color=None,
-               profile_link_color=None,
-               profile_text_color=None,
-               protected=None,
-               utc_offset=None,
-               time_zone=None,
-               followers_count=None,
-               friends_count=None,
-               statuses_count=None,
-               favourites_count=None,
-               url=None,
-               status=None):
-    self.id = id
-    self.name = name
-    self.screen_name = screen_name
-    self.location = location
-    self.description = description
-    self.profile_image_url = profile_image_url
-    self.profile_background_tile = profile_background_tile
-    self.profile_background_image_url = profile_background_image_url
-    self.profile_sidebar_fill_color = profile_sidebar_fill_color
-    self.profile_background_color = profile_background_color
-    self.profile_link_color = profile_link_color
-    self.profile_text_color = profile_text_color
-    self.protected = protected
-    self.utc_offset = utc_offset
-    self.time_zone = time_zone
-    self.followers_count = followers_count
-    self.friends_count = friends_count
-    self.statuses_count = statuses_count
-    self.favourites_count = favourites_count
-    self.url = url
-    self.status = status
-
-
-  def GetId(self):
-    '''Get the unique id of this user.
-
-    Returns:
-      The unique id of this user
-    '''
-    return self._id
-
-  def SetId(self, id):
-    '''Set the unique id of this user.
-
-    Args:
-      id: The unique id of this user.
-    '''
-    self._id = id
-
-  id = property(GetId, SetId,
-                doc='The unique id of this user.')
-
-  def GetName(self):
-    '''Get the real name of this user.
-
-    Returns:
-      The real name of this user
-    '''
-    return self._name
-
-  def SetName(self, name):
-    '''Set the real name of this user.
-
-    Args:
-      name: The real name of this user
-    '''
-    self._name = name
-
-  name = property(GetName, SetName,
-                  doc='The real name of this user.')
-
-  def GetScreenName(self):
-    '''Get the short username of this user.
-
-    Returns:
-      The short username of this user
-    '''
-    return self._screen_name
-
-  def SetScreenName(self, screen_name):
-    '''Set the short username of this user.
-
-    Args:
-      screen_name: the short username of this user
-    '''
-    self._screen_name = screen_name
-
-  screen_name = property(GetScreenName, SetScreenName,
-                         doc='The short username of this user.')
-
-  def GetLocation(self):
-    '''Get the geographic location of this user.
-
-    Returns:
-      The geographic location of this user
-    '''
-    return self._location
-
-  def SetLocation(self, location):
-    '''Set the geographic location of this user.
-
-    Args:
-      location: The geographic location of this user
-    '''
-    self._location = location
-
-  location = property(GetLocation, SetLocation,
-                      doc='The geographic location of this user.')
-
-  def GetDescription(self):
-    '''Get the short text description of this user.
-
-    Returns:
-      The short text description of this user
-    '''
-    return self._description
-
-  def SetDescription(self, description):
-    '''Set the short text description of this user.
-
-    Args:
-      description: The short text description of this user
-    '''
-    self._description = description
-
-  description = property(GetDescription, SetDescription,
-                         doc='The short text description of this user.')
-
-  def GetUrl(self):
-    '''Get the homepage url of this user.
-
-    Returns:
-      The homepage url of this user
-    '''
-    return self._url
-
-  def SetUrl(self, url):
-    '''Set the homepage url of this user.
-
-    Args:
-      url: The homepage url of this user
-    '''
-    self._url = url
-
-  url = property(GetUrl, SetUrl,
-                 doc='The homepage url of this user.')
-
-  def GetProfileImageUrl(self):
-    '''Get the url of the thumbnail of this user.
-
-    Returns:
-      The url of the thumbnail of this user
-    '''
-    return self._profile_image_url
-
-  def SetProfileImageUrl(self, profile_image_url):
-    '''Set the url of the thumbnail of this user.
-
-    Args:
-      profile_image_url: The url of the thumbnail of this user
-    '''
-    self._profile_image_url = profile_image_url
-
-  profile_image_url= property(GetProfileImageUrl, SetProfileImageUrl,
-                              doc='The url of the thumbnail of this user.')
-
-  def GetProfileBackgroundTile(self):
-    '''Boolean for whether to tile the profile background image.
-
-    Returns:
-      True if the background is to be tiled, False if not, None if unset.
-    '''
-    return self._profile_background_tile
-
-  def SetProfileBackgroundTile(self, profile_background_tile):
-    '''Set the boolean flag for whether to tile the profile background image.
-
-    Args:
-      profile_background_tile: Boolean flag for whether to tile or not.
-    '''
-    self._profile_background_tile = profile_background_tile
-
-  profile_background_tile = property(GetProfileBackgroundTile, SetProfileBackgroundTile,
-                                     doc='Boolean for whether to tile the background image.')
-
-  def GetProfileBackgroundImageUrl(self):
-    return self._profile_background_image_url
-
-  def SetProfileBackgroundImageUrl(self, profile_background_image_url):
-    self._profile_background_image_url = profile_background_image_url
-
-  profile_background_image_url = property(GetProfileBackgroundImageUrl, SetProfileBackgroundImageUrl,
-                                          doc='The url of the profile background of this user.')
-
-  def GetProfileSidebarFillColor(self):
-    return self._profile_sidebar_fill_color
-
-  def SetProfileSidebarFillColor(self, profile_sidebar_fill_color):
-    self._profile_sidebar_fill_color = profile_sidebar_fill_color
-
-  profile_sidebar_fill_color = property(GetProfileSidebarFillColor, SetProfileSidebarFillColor)
-
-  def GetProfileBackgroundColor(self):
-    return self._profile_background_color
-
-  def SetProfileBackgroundColor(self, profile_background_color):
-    self._profile_background_color = profile_background_color
-
-  profile_background_color = property(GetProfileBackgroundColor, SetProfileBackgroundColor)
-
-  def GetProfileLinkColor(self):
-    return self._profile_link_color
-
-  def SetProfileLinkColor(self, profile_link_color):
-    self._profile_link_color = profile_link_color
-
-  profile_link_color = property(GetProfileLinkColor, SetProfileLinkColor)
-
-  def GetProfileTextColor(self):
-    return self._profile_text_color
-
-  def SetProfileTextColor(self, profile_text_color):
-    self._profile_text_color = profile_text_color
-
-  profile_text_color = property(GetProfileTextColor, SetProfileTextColor)
-
-  def GetProtected(self):
-    return self._protected
-
-  def SetProtected(self, protected):
-    self._protected = protected
-
-  protected = property(GetProtected, SetProtected)
-
-  def GetUtcOffset(self):
-    return self._utc_offset
-
-  def SetUtcOffset(self, utc_offset):
-    self._utc_offset = utc_offset
-
-  utc_offset = property(GetUtcOffset, SetUtcOffset)
-
-  def GetTimeZone(self):
-    '''Returns the current time zone string for the user.
-
-    Returns:
-      The descriptive time zone string for the user.
-    '''
-    return self._time_zone
-
-  def SetTimeZone(self, time_zone):
-    '''Sets the user's time zone string.
-
-    Args:
-      time_zone: The descriptive time zone to assign for the user.
-    '''
-    self._time_zone = time_zone
-
-  time_zone = property(GetTimeZone, SetTimeZone)
-
-  def GetStatus(self):
-    '''Get the latest twitter.Status of this user.
-
-    Returns:
-      The latest twitter.Status of this user
-    '''
-    return self._status
-
-  def SetStatus(self, status):
-    '''Set the latest twitter.Status of this user.
-
-    Args:
-      status: The latest twitter.Status of this user
-    '''
-    self._status = status
-
-  status = property(GetStatus, SetStatus,
-                  doc='The latest twitter.Status of this user.')
-
-  def GetFriendsCount(self):
-    '''Get the friend count for this user.
-    
-    Returns:
-      The number of users this user has befriended.
-    '''
-    return self._friends_count
-
-  def SetFriendsCount(self, count):
-    '''Set the friend count for this user.
-
-    Args:
-      count: The number of users this user has befriended.
-    '''
-    self._friends_count = count
-
-  friends_count = property(GetFriendsCount, SetFriendsCount,
-                  doc='The number of friends for this user.')
-
-  def GetFollowersCount(self):
-    '''Get the follower count for this user.
-    
-    Returns:
-      The number of users following this user.
-    '''
-    return self._followers_count
-
-  def SetFollowersCount(self, count):
-    '''Set the follower count for this user.
-
-    Args:
-      count: The number of users following this user.
-    '''
-    self._followers_count = count
-
-  followers_count = property(GetFollowersCount, SetFollowersCount,
-                  doc='The number of users following this user.')
-
-  def GetStatusesCount(self):
-    '''Get the number of status updates for this user.
-    
-    Returns:
-      The number of status updates for this user.
-    '''
-    return self._statuses_count
-
-  def SetStatusesCount(self, count):
-    '''Set the status update count for this user.
-
-    Args:
-      count: The number of updates for this user.
-    '''
-    self._statuses_count = count
-
-  statuses_count = property(GetStatusesCount, SetStatusesCount,
-                  doc='The number of updates for this user.')
-
-  def GetFavouritesCount(self):
-    '''Get the number of favourites for this user.
-    
-    Returns:
-      The number of favourites for this user.
-    '''
-    return self._favourites_count
-
-  def SetFavouritesCount(self, count):
-    '''Set the favourite count for this user.
-
-    Args:
-      count: The number of favourites for this user.
-    '''
-    self._favourites_count = count
-
-  favourites_count = property(GetFavouritesCount, SetFavouritesCount,
-                  doc='The number of favourites for this user.')
-
-  def __ne__(self, other):
-    return not self.__eq__(other)
-
-  def __eq__(self, other):
-    try:
-      return other and \
-             self.id == other.id and \
-             self.name == other.name and \
-             self.screen_name == other.screen_name and \
-             self.location == other.location and \
-             self.description == other.description and \
-             self.profile_image_url == other.profile_image_url and \
-             self.profile_background_tile == other.profile_background_tile and \
-             self.profile_background_image_url == other.profile_background_image_url and \
-             self.profile_sidebar_fill_color == other.profile_sidebar_fill_color and \
-             self.profile_background_color == other.profile_background_color and \
-             self.profile_link_color == other.profile_link_color and \
-             self.profile_text_color == other.profile_text_color and \
-             self.protected == other.protected and \
-             self.utc_offset == other.utc_offset and \
-             self.time_zone == other.time_zone and \
-             self.url == other.url and \
-             self.statuses_count == other.statuses_count and \
-             self.followers_count == other.followers_count and \
-             self.favourites_count == other.favourites_count and \
-             self.friends_count == other.friends_count and \
-             self.status == other.status
-    except AttributeError:
-      return False
-
-  def __str__(self):
-    '''A string representation of this twitter.User instance.
-
-    The return value is the same as the JSON string representation.
-
-    Returns:
-      A string representation of this twitter.User instance.
-    '''
-    return self.AsJsonString()
-
-  def AsJsonString(self):
-    '''A JSON string representation of this twitter.User instance.
-
-    Returns:
-      A JSON string representation of this twitter.User instance
-   '''
-    return simplejson.dumps(self.AsDict(), sort_keys=True)
-
-  def AsDict(self):
-    '''A dict representation of this twitter.User instance.
-
-    The return value uses the same key names as the JSON representation.
-
-    Return:
-      A dict representing this twitter.User instance
-    '''
-    data = {}
-    if self.id:
-      data['id'] = self.id
-    if self.name:
-      data['name'] = self.name
-    if self.screen_name:
-      data['screen_name'] = self.screen_name
-    if self.location:
-      data['location'] = self.location
-    if self.description:
-      data['description'] = self.description
-    if self.profile_image_url:
-      data['profile_image_url'] = self.profile_image_url
-    if self.profile_background_tile is not None:
-      data['profile_background_tile'] = self.profile_background_tile
-    if self.profile_background_image_url:
-      data['profile_sidebar_fill_color'] = self.profile_background_image_url
-    if self.profile_background_color:
-      data['profile_background_color'] = self.profile_background_color
-    if self.profile_link_color:
-      data['profile_link_color'] = self.profile_link_color
-    if self.profile_text_color:
-      data['profile_text_color'] = self.profile_text_color
-    if self.protected is not None:
-      data['protected'] = self.protected
-    if self.utc_offset:
-      data['utc_offset'] = self.utc_offset
-    if self.time_zone:
-      data['time_zone'] = self.time_zone
-    if self.url:
-      data['url'] = self.url
-    if self.status:
-      data['status'] = self.status.AsDict()
-    if self.friends_count:
-      data['friends_count'] = self.friends_count
-    if self.followers_count:
-      data['followers_count'] = self.followers_count
-    if self.statuses_count:
-      data['statuses_count'] = self.statuses_count
-    if self.favourites_count:
-      data['favourites_count'] = self.favourites_count
-    return data
-
-  @staticmethod
-  def NewFromJsonDict(data):
-    '''Create a new instance based on a JSON dict.
-
-    Args:
-      data: A JSON dict, as converted from the JSON in the twitter API
-    Returns:
-      A twitter.User instance
-    '''
-    if 'status' in data:
-      status = Status.NewFromJsonDict(data['status'])
-    else:
-      status = None
-    return User(id=data.get('id', None),
-                name=data.get('name', None),
-                screen_name=data.get('screen_name', None),
-                location=data.get('location', None),
-                description=data.get('description', None),
-                statuses_count=data.get('statuses_count', None),
-                followers_count=data.get('followers_count', None),
-                favourites_count=data.get('favourites_count', None),
-                friends_count=data.get('friends_count', None),
-                profile_image_url=data.get('profile_image_url', None),
-                profile_background_tile = data.get('profile_background_tile', None),
-                profile_background_image_url = data.get('profile_background_image_url', None),
-                profile_sidebar_fill_color = data.get('profile_sidebar_fill_color', None),
-                profile_background_color = data.get('profile_background_color', None),
-                profile_link_color = data.get('profile_link_color', None),
-                profile_text_color = data.get('profile_text_color', None),
-                protected = data.get('protected', None),
-                utc_offset = data.get('utc_offset', None),
-                time_zone = data.get('time_zone', None),
-                url=data.get('url', None),
-                status=status)
-
-class DirectMessage(object):
-  '''A class representing the DirectMessage structure used by the twitter API.
-
-  The DirectMessage structure exposes the following properties:
-
-    direct_message.id
-    direct_message.created_at
-    direct_message.created_at_in_seconds # read only
-    direct_message.sender_id
-    direct_message.sender_screen_name
-    direct_message.recipient_id
-    direct_message.recipient_screen_name
-    direct_message.text
+  status = twitter_pb2.Status()
+  _CopyProperty(data, status, 'created_at')
+  _CopyProperty(data, status, 'favorited')
+  _CopyProperty(data, status, 'id')
+  _CopyProperty(data, status, 'text')
+  _CopyProperty(data, status, 'in_reply_to_screen_name')
+  _CopyProperty(data, status, 'in_reply_to_user_id')
+  _CopyProperty(data, status, 'in_reply_to_status_id')
+  _CopyProperty(data, status, 'truncated')
+  _CopyProperty(data, status, 'source')
+  if 'user' in data:
+    status.user.CopyFrom(NewUserFromJsonDict(data['user']))
+  return status
+
+
+def ComputeCreatedAtInSeconds(status):
+  '''Returns the number of seconds past the epoch in the current timezone.
+
+  Args:
+    status: A status instance
+  Returns:
+    The number of seconds since the status was created.
   '''
+  return calendar.timegm(rfc822.parsedate(status.created_at))
 
-  def __init__(self,
-               id=None,
-               created_at=None,
-               sender_id=None,
-               sender_screen_name=None,
-               recipient_id=None,
-               recipient_screen_name=None,
-               text=None):
-    '''An object to hold a Twitter direct message.
 
-    This class is normally instantiated by the twitter.Api class and
-    returned in a sequence.
+def ComputeRelativeCreatedAt(status, now=None):
+  '''Get a human redable string representing the posting time
 
-    Note: Dates are posted in the form "Sat Jan 27 04:17:38 +0000 2007"
-
-    Args:
-      id: The unique id of this direct message
-      created_at: The time this direct message was posted
-      sender_id: The id of the twitter user that sent this message
-      sender_screen_name: The name of the twitter user that sent this message
-      recipient_id: The id of the twitter that received this message
-      recipient_screen_name: The name of the twitter that received this message
-      text: The text of this direct message
+  Args:
+    status: A status instance
+    now: 
+      The current time, if the client choses to set it.  Defaults 
+      to the wall clock time.
+  Returns:
+    A human readable string representing the posting time
     '''
-    self.id = id
-    self.created_at = created_at
-    self.sender_id = sender_id
-    self.sender_screen_name = sender_screen_name
-    self.recipient_id = recipient_id
-    self.recipient_screen_name = recipient_screen_name
-    self.text = text
+  if now is None:
+    now = time.time()
+  fudge = 1.25
+  created_at_in_seconds = ComputeCreatedAtInSeconds(status)
+  delta = int(now) - int(created_at_in_seconds)
+  if delta < (1 * fudge):
+    return 'about a second ago'
+  elif delta < (60 * (1/fudge)):
+    return 'about %d seconds ago' % (delta)
+  elif delta < (60 * fudge):
+    return 'about a minute ago'
+  elif delta < (60 * 60 * (1/fudge)):
+    return 'about %d minutes ago' % (delta / 60)
+  elif delta < (60 * 60 * fudge):
+    return 'about an hour ago'
+  elif delta < (60 * 60 * 24 * (1/fudge)):
+    return 'about %d hours ago' % (delta / (60 * 60))
+  elif delta < (60 * 60 * 24 * fudge):
+    return 'about a day ago'
+  else:
+    return 'about %d days ago' % (delta / (60 * 60 * 24))
 
-  def GetId(self):
-    '''Get the unique id of this direct message.
 
-    Returns:
-      The unique id of this direct message
-    '''
-    return self._id
+def NewUserFromJsonDict(data):
+  '''Create a new User instance based on a JSON dict.
 
-  def SetId(self, id):
-    '''Set the unique id of this direct message.
+  Args:
+    data: A JSON dict, as parsed from a twitter API response
+  Returns:
+    A User instance
+  '''
+  user = twitter_pb2.User()
+  _CopyProperty(data, user, 'id')
+  _CopyProperty(data, user, 'name')
+  _CopyProperty(data, user, 'screen_name')
+  _CopyProperty(data, user, 'location')
+  _CopyProperty(data, user, 'description')
+  _CopyProperty(data, user, 'statuses_count')
+  _CopyProperty(data, user, 'followers_count')
+  _CopyProperty(data, user, 'favourites_count', 'favorites_count')
+  _CopyProperty(data, user, 'friends_count')
+  _CopyProperty(data, user, 'profile_image_url', 'profile.image_url')
+  _CopyProperty(data, user, 'profile_background_tile', 'profile.background_tile')
+  _CopyProperty(data, user, 'profile_background_image_url', 'profile.background_image_url')
+  _CopyProperty(data, user, 'profile_sidebar_fill_color', 'profile.sidebar_fill_color')
+  _CopyProperty(data, user, 'profile_background_color', 'profile.background_color')
+  _CopyProperty(data, user, 'profile_link_color', 'profile.link_color')
+  _CopyProperty(data, user, 'profile_text_color', 'profile.text_color')
+  _CopyProperty(data, user, 'protected')
+  _CopyProperty(data, user, 'utc_offset')
+  _CopyProperty(data, user, 'time_zone')
+  _CopyProperty(data, user, 'url')
+  if 'status' in data:
+    user.status.CopyFrom(NewStatusFromJsonDict(data['status']))
+  return user
 
-    Args:
-      id: The unique id of this direct message
-    '''
-    self._id = id
 
-  id = property(GetId, SetId,
-                doc='The unique id of this direct message.')
+def NewDirectMessageFromJsonDict(data):
+  '''Create a new DirectMessage instance based on a JSON dict.
 
-  def GetCreatedAt(self):
-    '''Get the time this direct message was posted.
+  Args:
+    data: A JSON dict, as parsed from a twitter API response
+  Returns:
+    A DirectMessage instance
+  '''
+  direct_message = twitter_pb2.DirectMessage()
+  _CopyProperty(data, direct_message, 'created_at')
+  _CopyProperty(data, direct_message, 'recipient_id')
+  _CopyProperty(data, direct_message, 'sender_id')
+  _CopyProperty(data, direct_message, 'text')
+  _CopyProperty(data, direct_message, 'sender_screen_name')
+  _CopyProperty(data, direct_message, 'id')
+  _CopyProperty(data, direct_message, 'recipient_screen_name')
+  return direct_message
 
-    Returns:
-      The time this direct message was posted
-    '''
-    return self._created_at
-
-  def SetCreatedAt(self, created_at):
-    '''Set the time this direct message was posted.
-
-    Args:
-      created_at: The time this direct message was created
-    '''
-    self._created_at = created_at
-
-  created_at = property(GetCreatedAt, SetCreatedAt,
-                        doc='The time this direct message was posted.')
-
-  def GetCreatedAtInSeconds(self):
-    '''Get the time this direct message was posted, in seconds since the epoch.
-
-    Returns:
-      The time this direct message was posted, in seconds since the epoch.
-    '''
-    return calendar.timegm(rfc822.parsedate(self.created_at))
-
-  created_at_in_seconds = property(GetCreatedAtInSeconds,
-                                   doc="The time this direct message was "
-                                       "posted, in seconds since the epoch")
-
-  def GetSenderId(self):
-    '''Get the unique sender id of this direct message.
-
-    Returns:
-      The unique sender id of this direct message
-    '''
-    return self._sender_id
-
-  def SetSenderId(self, sender_id):
-    '''Set the unique sender id of this direct message.
-
-    Args:
-      sender id: The unique sender id of this direct message
-    '''
-    self._sender_id = sender_id
-
-  sender_id = property(GetSenderId, SetSenderId,
-                doc='The unique sender id of this direct message.')
-
-  def GetSenderScreenName(self):
-    '''Get the unique sender screen name of this direct message.
-
-    Returns:
-      The unique sender screen name of this direct message
-    '''
-    return self._sender_screen_name
-
-  def SetSenderScreenName(self, sender_screen_name):
-    '''Set the unique sender screen name of this direct message.
-
-    Args:
-      sender_screen_name: The unique sender screen name of this direct message
-    '''
-    self._sender_screen_name = sender_screen_name
-
-  sender_screen_name = property(GetSenderScreenName, SetSenderScreenName,
-                doc='The unique sender screen name of this direct message.')
-
-  def GetRecipientId(self):
-    '''Get the unique recipient id of this direct message.
-
-    Returns:
-      The unique recipient id of this direct message
-    '''
-    return self._recipient_id
-
-  def SetRecipientId(self, recipient_id):
-    '''Set the unique recipient id of this direct message.
-
-    Args:
-      recipient id: The unique recipient id of this direct message
-    '''
-    self._recipient_id = recipient_id
-
-  recipient_id = property(GetRecipientId, SetRecipientId,
-                doc='The unique recipient id of this direct message.')
-
-  def GetRecipientScreenName(self):
-    '''Get the unique recipient screen name of this direct message.
-
-    Returns:
-      The unique recipient screen name of this direct message
-    '''
-    return self._recipient_screen_name
-
-  def SetRecipientScreenName(self, recipient_screen_name):
-    '''Set the unique recipient screen name of this direct message.
-
-    Args:
-      recipient_screen_name: The unique recipient screen name of this direct message
-    '''
-    self._recipient_screen_name = recipient_screen_name
-
-  recipient_screen_name = property(GetRecipientScreenName, SetRecipientScreenName,
-                doc='The unique recipient screen name of this direct message.')
-
-  def GetText(self):
-    '''Get the text of this direct message.
-
-    Returns:
-      The text of this direct message.
-    '''
-    return self._text
-
-  def SetText(self, text):
-    '''Set the text of this direct message.
-
-    Args:
-      text: The text of this direct message
-    '''
-    self._text = text
-
-  text = property(GetText, SetText,
-                  doc='The text of this direct message')
-
-  def __ne__(self, other):
-    return not self.__eq__(other)
-
-  def __eq__(self, other):
-    try:
-      return other and \
-          self.id == other.id and \
-          self.created_at == other.created_at and \
-          self.sender_id == other.sender_id and \
-          self.sender_screen_name == other.sender_screen_name and \
-          self.recipient_id == other.recipient_id and \
-          self.recipient_screen_name == other.recipient_screen_name and \
-          self.text == other.text
-    except AttributeError:
-      return False
-
-  def __str__(self):
-    '''A string representation of this twitter.DirectMessage instance.
-
-    The return value is the same as the JSON string representation.
-
-    Returns:
-      A string representation of this twitter.DirectMessage instance.
-    '''
-    return self.AsJsonString()
-
-  def AsJsonString(self):
-    '''A JSON string representation of this twitter.DirectMessage instance.
-
-    Returns:
-      A JSON string representation of this twitter.DirectMessage instance
-   '''
-    return simplejson.dumps(self.AsDict(), sort_keys=True)
-
-  def AsDict(self):
-    '''A dict representation of this twitter.DirectMessage instance.
-
-    The return value uses the same key names as the JSON representation.
-
-    Return:
-      A dict representing this twitter.DirectMessage instance
-    '''
-    data = {}
-    if self.id:
-      data['id'] = self.id
-    if self.created_at:
-      data['created_at'] = self.created_at
-    if self.sender_id:
-      data['sender_id'] = self.sender_id
-    if self.sender_screen_name:
-      data['sender_screen_name'] = self.sender_screen_name
-    if self.recipient_id:
-      data['recipient_id'] = self.recipient_id
-    if self.recipient_screen_name:
-      data['recipient_screen_name'] = self.recipient_screen_name
-    if self.text:
-      data['text'] = self.text
-    return data
-
-  @staticmethod
-  def NewFromJsonDict(data):
-    '''Create a new instance based on a JSON dict.
-
-    Args:
-      data: A JSON dict, as converted from the JSON in the twitter API
-    Returns:
-      A twitter.DirectMessage instance
-    '''
-    return DirectMessage(created_at=data.get('created_at', None),
-                         recipient_id=data.get('recipient_id', None),
-                         sender_id=data.get('sender_id', None),
-                         text=data.get('text', None),
-                         sender_screen_name=data.get('sender_screen_name', None),
-                         id=data.get('id', None),
-                         recipient_screen_name=data.get('recipient_screen_name', None))
 
 class Api(object):
   '''A python interface into the Twitter API
@@ -1304,7 +292,7 @@ class Api(object):
     self.SetCredentials(username, password)
 
   def GetPublicTimeline(self, since_id=None):
-    '''Fetch the sequnce of public twitter.Status message for all users.
+    '''Fetch the sequnce of public Status message for all users.
 
     Args:
       since_id:
@@ -1312,7 +300,7 @@ class Api(object):
         more recent than) the specified ID. [Optional]
 
     Returns:
-      An sequence of twitter.Status instances, one for each message
+      An sequence of Status instances, one for each message
     '''
     parameters = {}
     if since_id:
@@ -1321,14 +309,14 @@ class Api(object):
     json = self._FetchUrl(url,  parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return [Status.NewFromJsonDict(x) for x in data]
+    return [NewStatusFromJsonDict(x) for x in data]
 
   def GetFriendsTimeline(self,
                          user=None,
                          count=None,
                          since=None, 
                          since_id=None):
-    '''Fetch the sequence of twitter.Status messages for a user's friends
+    '''Fetch the sequence of Status messages for a user's friends
 
     The twitter.Api instance must be authenticated if the user is private.
 
@@ -1348,7 +336,7 @@ class Api(object):
         more recent than) the specified ID. [Optional]
 
     Returns:
-      A sequence of twitter.Status instances, one for each message
+      A sequence of Status instances, one for each message
     '''
     if user:
       url = 'http://twitter.com/statuses/friends_timeline/%s.json' % user
@@ -1371,10 +359,10 @@ class Api(object):
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return [Status.NewFromJsonDict(x) for x in data]
+    return [NewStatusFromJsonDict(x) for x in data]
 
   def GetUserTimeline(self, user=None, count=None, since=None, since_id=None):
-    '''Fetch the sequence of public twitter.Status messages for a single user.
+    '''Fetch the sequence of public Status messages for a single user.
 
     The twitter.Api instance must be authenticated if the user is private.
 
@@ -1391,7 +379,7 @@ class Api(object):
         more recent than) the specified ID. [Optional]
 
     Returns:
-      A sequence of twitter.Status instances, one for each message up to count
+      A sequence of Status instances, one for each message up to count
     '''
     try:
       if count:
@@ -1414,7 +402,7 @@ class Api(object):
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return [Status.NewFromJsonDict(x) for x in data]
+    return [NewStatusFromJsonDict(x) for x in data]
 
   def GetStatus(self, id):
     '''Returns a single status message.
@@ -1425,7 +413,7 @@ class Api(object):
       id: The numerical ID of the status you're trying to retrieve.
 
     Returns:
-      A twitter.Status instance representing that status message
+      A Status instance representing that status message
     '''
     try:
       if id:
@@ -1436,7 +424,7 @@ class Api(object):
     json = self._FetchUrl(url)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return Status.NewFromJsonDict(data)
+    return NewStatusFromJsonDict(data)
 
   def DestroyStatus(self, id):
     '''Destroys the status specified by the required ID parameter.
@@ -1448,7 +436,7 @@ class Api(object):
       id: The numerical ID of the status you're trying to destroy.
 
     Returns:
-      A twitter.Status instance representing the destroyed status message
+      A Status instance representing the destroyed status message
     '''
     try:
       if id:
@@ -1459,7 +447,7 @@ class Api(object):
     json = self._FetchUrl(url, post_data={})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return Status.NewFromJsonDict(data)
+    return NewStatusFromJsonDict(data)
 
   def PostUpdate(self, status, in_reply_to_status_id=None):
     '''Post a twitter status message from the authenticated user.
@@ -1477,7 +465,7 @@ class Api(object):
         message being replied to.  Invalid/missing status IDs will be
         ignored. [Optional]
     Returns:
-      A twitter.Status instance representing the message posted.
+      A Status instance representing the message posted.
     '''
     if not self._username:
       raise TwitterError("The twitter.Api instance must be authenticated.")
@@ -1494,7 +482,7 @@ class Api(object):
     json = self._FetchUrl(url, post_data=data)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return Status.NewFromJsonDict(data)
+    return NewStatusFromJsonDict(data)
 
   def PostUpdates(self, status, continuation=None, **kwargs):
     '''Post one or more twitter status messages from the authenticated user.
@@ -1515,7 +503,7 @@ class Api(object):
       **kwargs:
         See api.PostUpdate for a list of accepted parameters.
     Returns:
-      A of list twitter.Status instance representing the messages posted.
+      A list of Status instances representing the messages posted.
     '''
     results = list()
     if continuation is None:
@@ -1542,7 +530,7 @@ class Api(object):
         more recent than) the specified ID. [Optional]
 
     Returns:
-      A sequence of twitter.Status instances, one for each reply to the user.
+      A sequence of Status instances, one for each reply to the user.
     '''
     url = 'http://twitter.com/statuses/replies.json'
     if not self._username:
@@ -1557,7 +545,7 @@ class Api(object):
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return [Status.NewFromJsonDict(x) for x in data]
+    return [NewStatusFromJsonDict(x) for x in data]
 
   def GetFriends(self, user=None, page=None):
     '''Fetch the sequence of twitter.User instances, one for each friend.
@@ -1583,7 +571,7 @@ class Api(object):
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return [User.NewFromJsonDict(x) for x in data]
+    return [NewUserFromJsonDict(x) for x in data]
 
   def GetFollowers(self, page=None):
     '''Fetch the sequence of twitter.User instances, one for each follower
@@ -1602,7 +590,7 @@ class Api(object):
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return [User.NewFromJsonDict(x) for x in data]
+    return [NewUserFromJsonDict(x) for x in data]
 
   def GetFeatured(self):
     '''Fetch the sequence of twitter.User instances featured on twitter.com
@@ -1616,7 +604,7 @@ class Api(object):
     json = self._FetchUrl(url)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return [User.NewFromJsonDict(x) for x in data]
+    return [NewUserFromJsonDict(x) for x in data]
 
   def GetUser(self, user):
     '''Returns a single user.
@@ -1633,7 +621,7 @@ class Api(object):
     json = self._FetchUrl(url)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return User.NewFromJsonDict(data)
+    return NewUserFromJsonDict(data)
 
   def GetDirectMessages(self, since=None, since_id=None, page=None):
     '''Returns a list of the direct messages sent to the authenticating user.
@@ -1664,7 +652,7 @@ class Api(object):
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return [DirectMessage.NewFromJsonDict(x) for x in data]
+    return [NewDirectMessageFromJsonDict(x) for x in data]
 
   def PostDirectMessage(self, user, text):
     '''Post a twitter direct message from the authenticated user
@@ -1685,7 +673,7 @@ class Api(object):
     json = self._FetchUrl(url, post_data=data)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return DirectMessage.NewFromJsonDict(data)
+    return NewDirectMessageFromJsonDict(data)
 
   def DestroyDirectMessage(self, id):
     '''Destroys the direct message specified in the required ID parameter.
@@ -1704,7 +692,7 @@ class Api(object):
     json = self._FetchUrl(url, post_data={})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return DirectMessage.NewFromJsonDict(data)
+    return NewDirectMessageFromJsonDict(data)
 
   def CreateFriendship(self, user):
     '''Befriends the user specified in the user parameter as the authenticating user.
@@ -1720,7 +708,7 @@ class Api(object):
     json = self._FetchUrl(url, post_data={})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return User.NewFromJsonDict(data)
+    return NewUserFromJsonDict(data)
 
   def DestroyFriendship(self, user):
     '''Discontinues friendship with the user specified in the user parameter.
@@ -1736,7 +724,7 @@ class Api(object):
     json = self._FetchUrl(url, post_data={})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return User.NewFromJsonDict(data)
+    return NewUserFromJsonDict(data)
 
   def CreateFavorite(self, status):
     '''Favorites the status specified in the status parameter as the authenticating user.
@@ -1745,15 +733,15 @@ class Api(object):
     The twitter.Api instance must be authenticated.
 
     Args:
-      The twitter.Status instance to mark as a favorite.
+      The Status instance to mark as a favorite.
     Returns:
-      A twitter.Status instance representing the newly-marked favorite.
+      A Status instance representing the newly-marked favorite.
     '''
     url = 'http://twitter.com/favorites/create/%s.json' % status.id
     json = self._FetchUrl(url, post_data={})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return Status.NewFromJsonDict(data)
+    return NewStatusFromJsonDict(data)
 
   def DestroyFavorite(self, status):
     '''Un-favorites the status specified in the ID parameter as the authenticating user.
@@ -1762,15 +750,15 @@ class Api(object):
     The twitter.Api instance must be authenticated.
 
     Args:
-      The twitter.Status to unmark as a favorite.
+      The Status to unmark as a favorite.
     Returns:
-      A twitter.Status instance representing the newly-unmarked favorite.
+      A Status instance representing the newly-unmarked favorite.
     '''
     url = 'http://twitter.com/favorites/destroy/%s.json' % status.id
     json = self._FetchUrl(url, post_data={})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return Status.NewFromJsonDict(data)
+    return NewStatusFromJsonDict(data)
 
   def GetUserByEmail(self, email):
     '''Returns a single user by email address.
@@ -1784,7 +772,7 @@ class Api(object):
     json = self._FetchUrl(url)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return User.NewFromJsonDict(data)
+    return NewUserFromJsonDict(data)
 
   def SetCredentials(self, username, password):
     '''Set the username and password for this instance

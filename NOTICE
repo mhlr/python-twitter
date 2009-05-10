@@ -2,5 +2,6 @@ NOTICE
 
 The simplejson library (http://simplejson.googlecode.com) is used under the terms of the MIT license and is copyright Bob Ippolito.  See http://simplejson.googlecode.com/svn/trunk/LICENSE.txt for details.
 
+The protobuf library (http://code.google.com/p/protobuf/) is used under the terms of the New BSD license and is copyright Google. See http://code.google.com/p/protobuf/source/browse/trunk/COPYING.txt for details.
 
 This code is made available under the Apache License and is copyright DeWitt Clinton.

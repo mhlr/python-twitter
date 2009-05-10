@@ -26,64 +26,52 @@ import calendar
 import unittest
 
 import twitter
+import twitter_pb2
 
 class StatusTest(unittest.TestCase):
 
   SAMPLE_JSON = '''{"created_at": "Fri Jan 26 23:17:14 +0000 2007", "id": 4391023, "text": "A l\u00e9gp\u00e1rn\u00e1s haj\u00f3m tele van angoln\u00e1kkal.", "user": {"description": "Canvas. JC Penny. Three ninety-eight.", "id": 718443, "location": "Okinawa, Japan", "name": "Kesuke Miyagi", "profile_image_url": "http://twitter.com/system/user/profile_image/718443/normal/kesuke.png", "screen_name": "kesuke", "url": "http://twitter.com/kesuke"}}'''
 
   def _GetSampleUser(self):
-    return twitter.User(id=718443,
-                        name='Kesuke Miyagi',
-                        screen_name='kesuke',
-                        description=u'Canvas. JC Penny. Three ninety-eight.',
-                        location='Okinawa, Japan',
-                        url='http://twitter.com/kesuke',
-                        profile_image_url='http://twitter.com/system/user/pro'
-                                          'file_image/718443/normal/kesuke.pn'
-                                          'g')
+    user = twitter_pb2.User()
+    user.id = 718443
+    user.name = 'Kesuke Miyagi'
+    user.screen_name = 'kesuke'
+    user.description = u'Canvas. JC Penny. Three ninety-eight.'
+    user.location = 'Okinawa, Japan'
+    user.url = 'http://twitter.com/kesuke'
+    user.profile.image_url = (
+      'http://twitter.com/system/user/profile_image/718443/normal/kesuke.png')
+    return user
 
   def _GetSampleStatus(self):
-    return twitter.Status(created_at='Fri Jan 26 23:17:14 +0000 2007',
-                          id=4391023,
-                          text=u'A légpárnás hajóm tele van angolnákkal.',
-                          user=self._GetSampleUser())
+    status = twitter_pb2.Status()
+    status.created_at = 'Fri Jan 26 23:17:14 +0000 2007'
+    status.id = 4391023
+    status.text = u'A légpárnás hajóm tele van angolnákkal.'
+    status.user.CopyFrom(self._GetSampleUser())
+    return status
 
   def testInit(self):
     '''Test the twitter.Status constructor'''
-    status = twitter.Status(created_at='Fri Jan 26 23:17:14 +0000 2007',
-                            id=4391023,
-                            text=u'A légpárnás hajóm tele van angolnákkal.',
-                            user=self._GetSampleUser())
-
-  def testGettersAndSetters(self):
-    '''Test all of the twitter.Status getters and setters'''
-    status = twitter.Status()
-    status.SetId(4391023)
-    self.assertEqual(4391023, status.GetId())
-    created_at = calendar.timegm((2007, 1, 26, 23, 17, 14, -1, -1, -1))
-    status.SetCreatedAt('Fri Jan 26 23:17:14 +0000 2007')
-    self.assertEqual('Fri Jan 26 23:17:14 +0000 2007', status.GetCreatedAt())
-    self.assertEqual(created_at, status.GetCreatedAtInSeconds())
-    status.SetNow(created_at + 10)
-    self.assertEqual("about 10 seconds ago", status.GetRelativeCreatedAt())
-    status.SetText(u'A légpárnás hajóm tele van angolnákkal.')
-    self.assertEqual(u'A légpárnás hajóm tele van angolnákkal.',
-                     status.GetText())
-    status.SetUser(self._GetSampleUser())
-    self.assertEqual(718443, status.GetUser().id)
+    status = twitter_pb2.Status()
+    status.created_at = 'Fri Jan 26 23:17:14 +0000 2007'
+    status.id = 4391023
+    status.text = u'A légpárnás hajóm tele van angolnákkal.'
+    status.user.CopyFrom(self._GetSampleUser())
 
   def testProperties(self):
     '''Test all of the twitter.Status properties'''
-    status = twitter.Status()
+    status = twitter_pb2.Status()
     status.id = 1
     self.assertEqual(1, status.id)
     created_at = calendar.timegm((2007, 1, 26, 23, 17, 14, -1, -1, -1))
     status.created_at = 'Fri Jan 26 23:17:14 +0000 2007'
     self.assertEqual('Fri Jan 26 23:17:14 +0000 2007', status.created_at)
-    self.assertEqual(created_at, status.created_at_in_seconds)
-    status.now = created_at + 10
-    self.assertEqual('about 10 seconds ago', status.relative_created_at)
-    status.user = self._GetSampleUser()
+    now = created_at + 10
+    self.assertEqual('about 10 seconds ago', 
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    status.user.CopyFrom(self._GetSampleUser())
     self.assertEqual(718443, status.user.id)
 
   def _ParseDate(self, string):
@@ -91,69 +79,73 @@ class StatusTest(unittest.TestCase):
 
   def testRelativeCreatedAt(self):
     '''Test various permutations of Status relative_created_at'''
-    status = twitter.Status(created_at='Fri Jan 01 12:00:00 +0000 2007')
-    status.now = self._ParseDate('Jan 01 12:00:00 2007')
-    self.assertEqual('about a second ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 12:00:01 2007')
-    self.assertEqual('about a second ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 12:00:02 2007')
-    self.assertEqual('about 2 seconds ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 12:00:05 2007')
-    self.assertEqual('about 5 seconds ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 12:00:50 2007')
-    self.assertEqual('about a minute ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 12:01:00 2007')
-    self.assertEqual('about a minute ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 12:01:10 2007')
-    self.assertEqual('about a minute ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 12:02:00 2007')
-    self.assertEqual('about 2 minutes ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 12:31:50 2007')
-    self.assertEqual('about 31 minutes ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 12:50:00 2007')
-    self.assertEqual('about an hour ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 13:00:00 2007')
-    self.assertEqual('about an hour ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 13:10:00 2007')
-    self.assertEqual('about an hour ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 14:00:00 2007')
-    self.assertEqual('about 2 hours ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 01 19:00:00 2007')
-    self.assertEqual('about 7 hours ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 02 11:30:00 2007')
-    self.assertEqual('about a day ago', status.relative_created_at)
-    status.now = self._ParseDate('Jan 04 12:00:00 2007')
-    self.assertEqual('about 3 days ago', status.relative_created_at)
-    status.now = self._ParseDate('Feb 04 12:00:00 2007')
-    self.assertEqual('about 34 days ago', status.relative_created_at)
-
-  def testAsJsonString(self):
-    '''Test the twitter.Status AsJsonString method'''
-    self.assertEqual(StatusTest.SAMPLE_JSON,
-                     self._GetSampleStatus().AsJsonString())
-
-  def testAsDict(self):
-    '''Test the twitter.Status AsDict method'''
-    status = self._GetSampleStatus()
-    data = status.AsDict()
-    self.assertEqual(4391023, data['id'])
-    self.assertEqual('Fri Jan 26 23:17:14 +0000 2007', data['created_at'])
-    self.assertEqual(u'A légpárnás hajóm tele van angolnákkal.', data['text'])
-    self.assertEqual(718443, data['user']['id'])
+    status = twitter_pb2.Status()
+    status.created_at = 'Fri Jan 01 12:00:00 +0000 2007'
+    now = self._ParseDate('Jan 01 12:00:00 2007')
+    self.assertEqual('about a second ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 12:00:01 2007')
+    self.assertEqual('about a second ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 12:00:02 2007')
+    self.assertEqual('about 2 seconds ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 12:00:05 2007')
+    self.assertEqual('about 5 seconds ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 12:00:50 2007')
+    self.assertEqual('about a minute ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 12:01:00 2007')
+    self.assertEqual('about a minute ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 12:01:10 2007')
+    self.assertEqual('about a minute ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 12:02:00 2007')
+    self.assertEqual('about 2 minutes ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 12:31:50 2007')
+    self.assertEqual('about 31 minutes ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 12:50:00 2007')
+    self.assertEqual('about an hour ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 13:00:00 2007')
+    self.assertEqual('about an hour ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 13:10:00 2007')
+    self.assertEqual('about an hour ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 14:00:00 2007')
+    self.assertEqual('about 2 hours ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 01 19:00:00 2007')
+    self.assertEqual('about 7 hours ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 02 11:30:00 2007')
+    self.assertEqual('about a day ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Jan 04 12:00:00 2007')
+    self.assertEqual('about 3 days ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
+    now = self._ParseDate('Feb 04 12:00:00 2007')
+    self.assertEqual('about 34 days ago',
+                     twitter.ComputeRelativeCreatedAt(status, now))
 
   def testEq(self):
     '''Test the twitter.Status __eq__ method'''
-    status = twitter.Status()
+    status = twitter_pb2.Status()
     status.created_at = 'Fri Jan 26 23:17:14 +0000 2007'
     status.id = 4391023
     status.text = u'A légpárnás hajóm tele van angolnákkal.'
-    status.user = self._GetSampleUser()
+    status.user.CopyFrom(self._GetSampleUser())
     self.assertEqual(status, self._GetSampleStatus())
 
   def testNewFromJsonDict(self):
     '''Test the twitter.Status NewFromJsonDict method'''
     data = simplejson.loads(StatusTest.SAMPLE_JSON)
-    status = twitter.Status.NewFromJsonDict(data)
+    status = twitter.NewStatusFromJsonDict(data)
     self.assertEqual(self._GetSampleStatus(), status)
 
 class UserTest(unittest.TestCase):
@@ -161,58 +153,42 @@ class UserTest(unittest.TestCase):
   SAMPLE_JSON = '''{"description": "Indeterminate things", "id": 673483, "location": "San Francisco, CA", "name": "DeWitt", "profile_image_url": "http://twitter.com/system/user/profile_image/673483/normal/me.jpg", "screen_name": "dewitt", "status": {"created_at": "Fri Jan 26 17:28:19 +0000 2007", "id": 4212713, "text": "\\"Select all\\" and archive your Gmail inbox.  The page loads so much faster!"}, "url": "http://unto.net/"}'''
 
   def _GetSampleStatus(self):
-    return twitter.Status(created_at='Fri Jan 26 17:28:19 +0000 2007',
-                          id=4212713,
-                          text='"Select all" and archive your Gmail inbox. '
-                               ' The page loads so much faster!')
+    status = twitter_pb2.Status()
+    status.created_at = 'Fri Jan 26 17:28:19 +0000 2007'
+    status.id = 4212713
+    status.text = (
+      '"Select all" and archive your Gmail inbox.  The page loads so much faster!')
+    return status
 
   def _GetSampleUser(self):
-    return twitter.User(id=673483,
-                        name='DeWitt',
-                        screen_name='dewitt',
-                        description=u'Indeterminate things',
-                        location='San Francisco, CA',
-                        url='http://unto.net/',
-                        profile_image_url='http://twitter.com/system/user/prof'
-                                          'ile_image/673483/normal/me.jpg',
-                        status=self._GetSampleStatus())
-
-
+    user = twitter_pb2.User()
+    user.id = 673483
+    user.name = 'DeWitt'
+    user.screen_name = 'dewitt'
+    user.description = u'Indeterminate things'
+    user.location = 'San Francisco, CA'
+    user.url = 'http://unto.net/'
+    user.profile.image_url = (
+      'http://twitter.com/system/user/profile_image/673483/normal/me.jpg')
+    user.status.CopyFrom(self._GetSampleStatus())
+    return user
 
   def testInit(self):
     '''Test the twitter.User constructor'''
-    user = twitter.User(id=673483,
-                        name='DeWitt',
-                        screen_name='dewitt',
-                        description=u'Indeterminate things',
-                        url='http://twitter.com/dewitt',
-                        profile_image_url='http://twitter.com/system/user/prof'
-                                          'ile_image/673483/normal/me.jpg',
-                        status=self._GetSampleStatus())
-
-  def testGettersAndSetters(self):
-    '''Test all of the twitter.User getters and setters'''
-    user = twitter.User()
-    user.SetId(673483)
-    self.assertEqual(673483, user.GetId())
-    user.SetName('DeWitt')
-    self.assertEqual('DeWitt', user.GetName())
-    user.SetScreenName('dewitt')
-    self.assertEqual('dewitt', user.GetScreenName())
-    user.SetDescription('Indeterminate things')
-    self.assertEqual('Indeterminate things', user.GetDescription())
-    user.SetLocation('San Francisco, CA')
-    self.assertEqual('San Francisco, CA', user.GetLocation())
-    user.SetProfileImageUrl('http://twitter.com/system/user/profile_im'
-                            'age/673483/normal/me.jpg')
-    self.assertEqual('http://twitter.com/system/user/profile_image/673'
-                     '483/normal/me.jpg', user.GetProfileImageUrl())
-    user.SetStatus(self._GetSampleStatus())
-    self.assertEqual(4212713, user.GetStatus().id)
+    user = twitter_pb2.User()
+    user.id = 673483
+    user.name = 'DeWitt'
+    user.screen_name = 'dewitt'
+    user.description = u'Indeterminate things'
+    user.location = 'San Francisco, CA'
+    user.url = 'http://unto.net/'
+    user.profile.image_url = (
+      'http://twitter.com/system/user/profile_image/673483/normal/me.jpg')
+    user.status.CopyFrom(self._GetSampleStatus())
 
   def testProperties(self):
     '''Test all of the twitter.User properties'''
-    user = twitter.User()
+    user = twitter_pb2.User()
     user.id = 673483
     self.assertEqual(673483, user.id)
     user.name = 'DeWitt'
@@ -223,50 +199,32 @@ class UserTest(unittest.TestCase):
     self.assertEqual('Indeterminate things', user.description)
     user.location = 'San Francisco, CA'
     self.assertEqual('San Francisco, CA', user.location)
-    user.profile_image_url = 'http://twitter.com/system/user/profile_i' \
-                             'mage/673483/normal/me.jpg'
-    self.assertEqual('http://twitter.com/system/user/profile_image/6734'
-                     '83/normal/me.jpg', user.profile_image_url)
+    user.profile.image_url = (
+      'http://twitter.com/system/user/profile_image/673483/normal/me.jpg')
+    self.assertEqual(
+      'http://twitter.com/system/user/profile_image/673483/normal/me.jpg',
+      user.profile.image_url)
     self.status = self._GetSampleStatus()
     self.assertEqual(4212713, self.status.id)
 
-  def testAsJsonString(self):
-    '''Test the twitter.User AsJsonString method'''
-    self.assertEqual(UserTest.SAMPLE_JSON,
-                     self._GetSampleUser().AsJsonString())
-
-  def testAsDict(self):
-    '''Test the twitter.User AsDict method'''
-    user = self._GetSampleUser()
-    data = user.AsDict()
-    self.assertEqual(673483, data['id'])
-    self.assertEqual('DeWitt', data['name'])
-    self.assertEqual('dewitt', data['screen_name'])
-    self.assertEqual('Indeterminate things', data['description'])
-    self.assertEqual('San Francisco, CA', data['location'])
-    self.assertEqual('http://twitter.com/system/user/profile_image/6734'
-                     '83/normal/me.jpg', data['profile_image_url'])
-    self.assertEqual('http://unto.net/', data['url'])
-    self.assertEqual(4212713, data['status']['id'])
-
   def testEq(self):
     '''Test the twitter.User __eq__ method'''
-    user = twitter.User()
+    user = twitter_pb2.User()
     user.id = 673483
     user.name = 'DeWitt'
     user.screen_name = 'dewitt'
     user.description = 'Indeterminate things'
     user.location = 'San Francisco, CA'
-    user.profile_image_url = 'http://twitter.com/system/user/profile_image/67' \
-                             '3483/normal/me.jpg'
+    user.profile.image_url = (
+      'http://twitter.com/system/user/profile_image/673483/normal/me.jpg')
     user.url = 'http://unto.net/'
-    user.status = self._GetSampleStatus()
+    user.status.CopyFrom(self._GetSampleStatus())
     self.assertEqual(user, self._GetSampleUser())
 
   def testNewFromJsonDict(self):
     '''Test the twitter.User NewFromJsonDict method'''
     data = simplejson.loads(UserTest.SAMPLE_JSON)
-    user = twitter.User.NewFromJsonDict(data)
+    user = twitter.NewUserFromJsonDict(data)
     self.assertEqual(self._GetSampleUser(), user)
 
 

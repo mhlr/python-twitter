@@ -1786,6 +1786,19 @@ class Api(object):
     self._CheckForTwitterError(data)
     return User.NewFromJsonDict(data)
 
+  def VerifyCredentials(self):
+    '''Verifies user information from twitter
+
+    Returns:
+       Returns the twitter.User object
+    '''
+    url='https://twitter.com/account/verify_credentials.json'
+    # no_cache is set to True - see: issue # 25 on python-twitter
+    json = self._FetchUrl(url, no_cache=True)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    return User.NewFromJsonDict(data)
+
   def SetCredentials(self, username, password):
     '''Set the username and password for this instance
 

@@ -34,9 +34,9 @@ import urllib2
 import urlparse
 
 try:
-    from hashlib import md5
+  from hashlib import md5
 except ImportError:
-    from md5 import md5
+  from md5 import md5
 
 
 CHARACTER_LIMIT = 140

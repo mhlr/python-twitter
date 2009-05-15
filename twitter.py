@@ -2051,7 +2051,7 @@ class Api(object):
     # Always return the latest version
     return url_data
 
-  def SearchTwitter(self, query, lang=None, rpp=50, 
+  def Search(self, query, lang=None, rpp=None, 
                       page=0, since_id=None, geocode=None, show_user=None):
     '''Search Twitter
         Args:
@@ -2074,7 +2074,7 @@ class Api(object):
              When true, prepends "<user>:" to the beginning of the tweet. 
              This is useful for readers that do not display Atom's author field.
         Returns:
-          ResultSet object, contains the results and other meta data.
+          Results object, contains the results and other meta data.
     '''
     parameters = {}
     parameters['q'] = query
@@ -2099,7 +2099,7 @@ class Api(object):
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return ResultSet.NewFromJsonDict(data)
+    return Results.NewFromJsonDict(data)
 
 class _FileCacheError(Exception):
   '''Base exception class for FileCache related errors'''
@@ -2191,22 +2191,15 @@ class _FileCache(object):
   def _GetPrefix(self,hashed_key):
     return os.path.sep.join(hashed_key[0:_FileCache.DEPTH])
 
-class ResultItem(Status):
+class Result(object):
   '''A class representing the ResultItem in ResultSet used by the twitter API.
   '''
 
   def __init__(self,
                created_at=None,
-               favorited=None,
                id=None,
                text=None,
-               user=None,
-               in_reply_to_screen_name=None,
-               in_reply_to_user_id=None,
-               in_reply_to_status_id=None,
-               truncated=None,
                source=None,
-               now=None,
                from_user=None,
                from_user_id=None,
                to_user=None,
@@ -2215,25 +2208,59 @@ class ResultItem(Status):
                iso_language_code=None):
     '''An object that holds ResultItem for ResultsSet of Twiter Search API.
     '''
-    Status.__init__(self,
-                   created_at=created_at,
-                   favorited=favorited,
-                   id=id,
-                   text=text,
-                   user=user,
-                   in_reply_to_screen_name=in_reply_to_screen_name,
-                   in_reply_to_user_id=in_reply_to_user_id,
-                   in_reply_to_status_id=in_reply_to_status_id,
-                   truncated=truncated,
-                   source=source,
-                   now=now                    
-                    )
+    self.created_at = created_at,
+    self.id = id,
+    self.text = text,
+    self.source = source,
     self.from_user = from_user
     self.from_user_id = from_user_id
     self.to_user = to_user
     self.to_user_id = to_user_id
     self.profile_image_url = profile_image_url
     self.iso_language_code = iso_language_code 
+
+  def GetCreatedAt(self):
+    '''Get the time this result item was created'''
+    return self._created_at
+
+  def SetCreatedAt(self, created_at):
+    '''Set the time this result is was created'''
+    self._created_at = created_at
+
+  created_at = property(GetCreatedAt, SetCreatedAt,
+                            doc='The time this result Item was created')
+
+  def GetId(self):
+    '''Get the Id of this result item'''
+    return self._id
+
+  def SetId(self, id):
+    '''Set the id of this result Item'''
+    self._id = id
+
+  id = property(GetId, SetId, doc='Get the Id of this result item')
+
+  def GetText(self):
+    '''Get the text of this result Item'''
+    return self._text
+
+  def SetText(self, text):
+    '''Set the text of this result item'''
+    self._text = text
+
+  text = property(GetText, SetText,
+                        doc="Get the text of this result Item")
+
+  def GetSource(self):
+    '''Get the source of this result Item'''
+    return self._souce
+
+  def SetSource(self, source):
+    '''Set the source of this result Item'''
+    self._source = source
+
+  source = property(GetSource, SetSource, 
+                        doc="Get the source of this result Item")
 
   def GetFromUser(self):
     return self._from_user
@@ -2290,9 +2317,11 @@ class ResultItem(Status):
     return not self.__eq__(other)
 
   def __eq__(self, other):
-    '''will fix it later'''
     try:
-      return Status.__eq__(self, other) and \
+      return self.created_at == other.created_at and \
+            self.id == other.id and \
+            self.text == other.text and \
+            self.source == other.soutce and \
             self.from_user == other.from_user and \
             self.from_user_id == other.from_user_id and \
             self.to_user == other.to_user and \
@@ -2310,7 +2339,14 @@ class ResultItem(Status):
     Return:
       A dict representing this ResultItem instance
     '''
-    data = Status.AsDict(self)
+    if self.created_at:
+      data['created_at'] = self.created_at
+    if self.id:
+      data['id'] = self.id
+    if self.text:
+      data['text'] = self.text
+    if self.source:
+      data['source'] = self.source
     if self.from_user:
       data['from_user'] = self.from_user
     if self.from_user_id:
@@ -2338,16 +2374,10 @@ class ResultItem(Status):
       user = User.NewFromJsonDict(data['user'])
     else:
       user = None
-    return ResultItem(created_at=data.get('created_at', None),
-                  favorited=data.get('favorited', None),
+    return Result(created_at=data.get('created_at', None),
                   id=data.get('id', None),
                   text=data.get('text', None),
-                  in_reply_to_screen_name=data.get('in_reply_to_screen_name', None),
-                  in_reply_to_user_id=data.get('in_reply_to_user_id', None),
-                  in_reply_to_status_id=data.get('in_reply_to_status_id', None),
-                  truncated=data.get('truncated', None),
                   source=data.get('source', None),
-                  user=user,
                   from_user=data.get('from_user', None),
                   from_user_id=data.get('from_user_id', None),
                   to_user=data.get('to_user', None),
@@ -2357,10 +2387,10 @@ class ResultItem(Status):
                   )
 
 
-class ResultSet(object):
+class Results(object):
   '''A class representing the ResultSet structure used by the twitter API.
 
-  The ResultSet structure exposes the following properties:
+  The Results structure exposes the following properties:
 
     resultset.next_page
     resultset.completed_in
@@ -2435,7 +2465,7 @@ class ResultSet(object):
     return self._results
 
   def SetResults(self, results):
-    self._results = [ResultItem.NewFromJsonDict(data) for data in results]
+    self._results = [Result.NewFromJsonDict(data) for data in results]
 
   results = property(GetResults, SetResults,
                 doc='')
@@ -2480,7 +2510,6 @@ class ResultSet(object):
     return not self.__eq__(other)
 
   def __eq__(self, other):
-    '''will fix it later'''
     try:
       return other and \
             self.next_page == other.next_page and \
@@ -2557,7 +2586,7 @@ class ResultSet(object):
     Returns:
       A ResultSet instance
     '''
-    return ResultSet(next_page=data.get('next_page', None),
+    return Results(next_page=data.get('next_page', None),
                    completed_in=data.get('completed_in', None),
                    refresh_url=data.get('refresh_url', None),
                    results=data.get('results', None),

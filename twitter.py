@@ -204,6 +204,52 @@ def NewDirectMessageFromJsonDict(data):
   return direct_message
 
 
+def NewResultsFromJsonDict(data):
+  '''Create a new Results instance based on a JSON dict.
+
+  Args:
+    data: A JSON dict, as parsed from a twitter API response
+  Returns:
+    A Results instance
+  '''
+  results = twitter_pb2.Results()
+  _CopyProperty(data, results, 'completed_in')
+  _CopyProperty(data, results, 'max_id')
+  _CopyProperty(data, results, 'next_page')
+  _CopyProperty(data, results, 'page')
+  _CopyProperty(data, results, 'query')
+  _CopyProperty(data, results, 'refresh_url')
+  _CopyProperty(data, results, 'since_id')
+  _CopyProperty(data, results, 'results_per_page')
+  if 'results' in data:
+    for result_data in data['results']:
+      result = results.results.add()
+      result.CopyFrom(NewResultFromJsonDict(result_data))
+  return results
+
+
+def NewResultFromJsonDict(data):
+  '''Create a new Result instance based on a JSON dict.
+
+  Args:
+    data: A JSON dict, as parsed from a twitter API response
+  Returns:
+    A Result instance
+  '''
+  result = twitter_pb2.Results.Result()
+  _CopyProperty(data, result, 'created_at')
+  _CopyProperty(data, result, 'from_user')
+  _CopyProperty(data, result, 'from_user_id')
+  _CopyProperty(data, result, 'id')
+  _CopyProperty(data, result, 'iso_language_code')
+  _CopyProperty(data, result, 'profile_image_url')
+  _CopyProperty(data, result, 'source')
+  _CopyProperty(data, result, 'text')
+  _CopyProperty(data, result, 'to_user')
+  _CopyProperty(data, result, 'to_user_id')
+  return result
+
+
 class Api(object):
   '''A python interface into the Twitter API
 

@@ -537,13 +537,6 @@ _RESULTS_RESULT = descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    descriptor.FieldDescriptor(
-      name='results_per_page', full_name='twitter.Results.Result.results_per_page', index=10,
-      number=11, type=17, cpp_type=1, label=1,
-      default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -610,6 +603,13 @@ _RESULTS = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='since_id', full_name='twitter.Results.since_id', index=7,
       number=8, type=4, cpp_type=4, label=1,
+      default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='results_per_page', full_name='twitter.Results.results_per_page', index=8,
+      number=9, type=17, cpp_type=1, label=1,
       default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,

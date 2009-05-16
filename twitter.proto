@@ -119,7 +119,8 @@ message Results {
   optional string refresh_url = 6;
   repeated Result results = 7;
   optional uint64 since_id = 8;
-  
+  optional sint32 results_per_page = 9;
+ 
   message Result {
     optional string created_at = 1;
     optional string from_user = 2;
@@ -131,8 +132,9 @@ message Results {
     optional string text = 8;
     optional string to_user = 9;
     optional uint64 to_user_id = 10;
-    optional sint32 results_per_page = 11;
-    // 'since_id' moved to Results, do not reuse slot 12
+    // 'results_per_page' and 'since_id' moved to 
+    // Results.  Do not reuse slots 11 or 12
+    // optional sint32 results_per_page = 11;
     // optional uint64 since_id = 12;
   }
 }

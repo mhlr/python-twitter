@@ -148,6 +148,7 @@ class StatusTest(unittest.TestCase):
     status = twitter.NewStatusFromJsonDict(data)
     self.assertEqual(self._GetSampleStatus(), status)
 
+
 class UserTest(unittest.TestCase):
 
   SAMPLE_JSON = '''{"description": "Indeterminate things", "id": 673483, "location": "San Francisco, CA", "name": "DeWitt", "profile_image_url": "http://twitter.com/system/user/profile_image/673483/normal/me.jpg", "screen_name": "dewitt", "status": {"created_at": "Fri Jan 26 17:28:19 +0000 2007", "id": 4212713, "text": "\\"Select all\\" and archive your Gmail inbox.  The page loads so much faster!"}, "url": "http://unto.net/"}'''
@@ -226,6 +227,39 @@ class UserTest(unittest.TestCase):
     data = simplejson.loads(UserTest.SAMPLE_JSON)
     user = twitter.NewUserFromJsonDict(data)
     self.assertEqual(self._GetSampleUser(), user)
+
+
+class ResultsTest(unittest.TestCase):
+
+  SAMPLE_JSON = '''{"results":[{"text":"is loving how on twitter all these crazy popular celebraties seem like regular people like me &amp; you....i &lt;3 twitter","to_user_id":null,"from_user":"oxAly","id":1818791702,"from_user_id":6905503,"iso_language_code":"en","source":"&lt;a href=&quot;http:\/\/twitter.com\/&quot;&gt;web&lt;\/a&gt;","profile_image_url":"http:\/\/s3.amazonaws.com\/twitter_production\/profile_images\/212410949\/mommy__me_normal.jpg","created_at":"Sat, 16 May 2009 18:59:22 +0000"},{"text":"@ryanjoy what are u using for twitter nowadays... Twitterfon just added ads and the new update is no bueno","to_user_id":1002058,"to_user":"ryanjoy","from_user":"Tyler_Batten","id":1818791671,"from_user_id":2178043,"iso_language_code":"en","source":"&lt;a href=&quot;http:\/\/twitterfon.net\/&quot;&gt;TwitterFon&lt;\/a&gt;","profile_image_url":"http:\/\/s3.amazonaws.com\/twitter_production\/profile_images\/62948019\/Photo_249_normal.jpg","created_at":"Sat, 16 May 2009 18:59:22 +0000"}],"since_id":0,"max_id":1818791702,"refresh_url":"?since_id=1818791702&q=twitter","results_per_page":2,"next_page":"?page=2&max_id=1818791702&rpp=2&q=twitter","completed_in":0.016569,"page":1,"query":"twitter"}'''
+
+  def testNewResultsFromJsonDict(self):
+    data = simplejson.loads(ResultsTest.SAMPLE_JSON)
+    results = twitter.NewResultsFromJsonDict(data)
+    self.assertEqual(0.016569, results.completed_in)
+    self.assertEqual(1818791702, results.max_id)
+    self.assertEqual('?page=2&max_id=1818791702&rpp=2&q=twitter', 
+                     results.next_page)
+    self.assertEqual(1, results.page)
+    self.assertEqual('twitter', results.query)
+    self.assertEqual('?since_id=1818791702&q=twitter',
+                     results.refresh_url)
+    self.assertEqual(2, results.results_per_page)
+    self.assertEqual(0, results.since_id)
+    self.assertEqual(2, len(results.results))
+    result = results.results[0]
+    self.assertEqual('Sat, 16 May 2009 18:59:22 +0000', result.created_at)
+    self.assertEqual('oxAly', result.from_user)
+    self.assertEqual(6905503, result.from_user_id)
+    self.assertEqual(1818791702, result.id)
+    self.assertEqual('en', result.iso_language_code)
+    self.assertFalse(result.HasField('to_user_id'))
+    self.assertEqual('''is loving how on twitter all these crazy popular celebraties seem like regular people like me &amp; you....i &lt;3 twitter''',
+                     result.text)
+    result = results.results[1]
+    self.assertEqual(1818791671, result.id)
+    self.assertEqual(1002058, result.to_user_id)
+    self.assertEqual('ryanjoy', result.to_user)
 
 
 class FileCacheTest(unittest.TestCase):

@@ -820,6 +820,72 @@ class Api(object):
     self._CheckForTwitterError(data)
     return NewUserFromJsonDict(data)
 
+  def Search(self, 
+             query, 
+             lang=None, 
+             rpp=None, 
+             page=None, 
+             since_id=None, 
+             geocode=None, 
+             show_user=None):
+    '''Returns tweets that match a specified query.
+
+    Args:
+      query: The search query string, must be less than 140 characters
+      lang: 
+        Restricts tweets to the given language, given by an ISO 639-1 
+        code. [Optional]
+      rpp:
+        The number of tweets to return per page, up to a max of 100. [Optional]
+      page: 
+        The page number (starting at 1) to return, up to a max of
+        roughly 1500 results (based on rpp * page. Note: there are
+        pagination limits. [Optional]
+      since_id: 
+        Returns tweets with status ids greater than the given id. [Optional]
+      geocode:       
+        Returns tweets by users located within a given radius of the
+        given latitude/longitude, where the user's location is taken
+        from their Twitter profile. The parameter value is specified
+        by "latitide,longitude,radius", where radius units must be
+        specified as either "mi" (miles) or "km" (kilometers). Note
+        that you cannot use the near operator via the API to geocode
+        arbitrary locations; however you can use this geocode
+        parameter to search near geocodes directly. [Optional]
+      show_user:
+        When true, prepends "<user>:" to the beginning of the
+        tweet. This is useful for readers that do not display Atom's
+        author field. The default is false. [Optional]
+    Returns:
+      A Results instance representing the search results
+    '''
+    url = 'http://search.twitter.com/search.json'
+    
+    parameters = {'q': query}
+    if len(query) > 140:
+      raise TwitterError('query must be <= 140 characters')
+    if lang:
+      parameters['lang'] = lang
+    if rpp is not None:
+      try:
+        if int(rpp) > 100:
+          raise TwitterError("'rpp' may not be greater than 100")
+      except ValueError:
+        raise TwitterError("'rpp' must be an integer")
+      parameters['rpp'] = rpp
+    if page:
+      parameters['page'] = page
+    if since_id:
+      parameters['since_id'] = since_id
+    if geocode:
+      parameters['geocode'] = geocode
+    if show_user:
+      parameters['show_user'] = show_user
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    return NewResultsFromJsonDict(data)
+
   def SetCredentials(self, username, password):
     '''Set the username and password for this instance
 

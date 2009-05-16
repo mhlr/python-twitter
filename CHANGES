@@ -1,3 +1,7 @@
+2009-05-16
+
+  Implemented Search API
+
 2009-05-10
 
  Replaced hand-written Status, User, and DirectMessage objects with auto-generated Protocol Buffer objects

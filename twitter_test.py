@@ -454,6 +454,13 @@ class ApiTest(unittest.TestCase):
     self.assertEqual('dewitt', user.screen_name)
     self.assertEqual(89586072, user.status.id)
 
+  def testSearch(self):
+    '''Test the Twitter.Api Search method'''
+    self._AddHandler('http://search.twitter.com/search.json?q=twitter',
+                     curry(self._OpenTestData, 'search.json'))
+    results = self._api.Search('twitter')
+    self.assertEqual(10, len(results.results))
+
   def _AddHandler(self, url, callback):
     self._urllib.AddHandler(url, callback)
 

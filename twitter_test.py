@@ -69,7 +69,7 @@ class StatusTest(unittest.TestCase):
     status.created_at = 'Fri Jan 26 23:17:14 +0000 2007'
     self.assertEqual('Fri Jan 26 23:17:14 +0000 2007', status.created_at)
     now = created_at + 10
-    self.assertEqual('about 10 seconds ago', 
+    self.assertEqual('about 10 seconds ago',
                      twitter.ComputeRelativeCreatedAt(status, now))
     status.user.CopyFrom(self._GetSampleUser())
     self.assertEqual(718443, status.user.id)
@@ -238,7 +238,7 @@ class ResultsTest(unittest.TestCase):
     results = twitter.NewResultsFromJsonDict(data)
     self.assertEqual(0.016569, results.completed_in)
     self.assertEqual(1818791702, results.max_id)
-    self.assertEqual('?page=2&max_id=1818791702&rpp=2&q=twitter', 
+    self.assertEqual('?page=2&max_id=1818791702&rpp=2&q=twitter',
                      results.next_page)
     self.assertEqual(1, results.page)
     self.assertEqual('twitter', results.query)

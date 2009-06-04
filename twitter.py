@@ -46,7 +46,7 @@ CHARACTER_LIMIT = 140
 
 class TwitterError(Exception):
   '''Base class for Twitter errors'''
-  
+
   @property
   def message(self):
     '''Returns the first argument used to construct this error.'''
@@ -122,8 +122,8 @@ def ComputeRelativeCreatedAt(status, now=None):
 
   Args:
     status: A status instance
-    now: 
-      The current time, if the client choses to set it.  Defaults 
+    now:
+      The current time, if the client choses to set it.  Defaults
       to the wall clock time.
   Returns:
     A human readable string representing the posting time
@@ -360,7 +360,7 @@ class Api(object):
   def GetFriendsTimeline(self,
                          user=None,
                          count=None,
-                         since=None, 
+                         since=None,
                          since_id=None):
     '''Fetch the sequence of Status messages for a user's friends
 
@@ -371,7 +371,7 @@ class Api(object):
         Specifies the ID or screen name of the user for whom to return
         the friends_timeline.  If unspecified, the username and password
         must be set in the twitter.Api instance.  [Optional]
-      count: 
+      count:
         Specifies the number of statuses to retrieve. May not be
         greater than 200. [Optional]
       since:
@@ -561,13 +561,13 @@ class Api(object):
     results.append(self.PostUpdate(lines[-1], **kwargs))
     return results
 
-  def GetReplies(self, since=None, since_id=None, page=None): 
+  def GetReplies(self, since=None, since_id=None, page=None):
     '''Get a sequence of status messages representing the 20 most recent
     replies (status updates prefixed with @username) to the authenticating
     user.
 
     Args:
-      page: 
+      page:
       since:
         Narrows the returned results to just those statuses created
         after the specified HTTP-formatted date. [optional]
@@ -608,7 +608,7 @@ class Api(object):
     if not self._username:
       raise TwitterError("twitter.Api instance must be authenticated")
     if user:
-      url = 'http://twitter.com/statuses/friends/%s.json' % user 
+      url = 'http://twitter.com/statuses/friends/%s.json' % user
     else:
       url = 'http://twitter.com/statuses/friends.json'
     parameters = {}
@@ -694,7 +694,7 @@ class Api(object):
     if since_id:
       parameters['since_id'] = since_id
     if page:
-      parameters['page'] = page 
+      parameters['page'] = page
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
@@ -820,30 +820,30 @@ class Api(object):
     self._CheckForTwitterError(data)
     return NewUserFromJsonDict(data)
 
-  def Search(self, 
-             query, 
-             lang=None, 
-             rpp=None, 
-             page=None, 
-             since_id=None, 
-             geocode=None, 
+  def Search(self,
+             query,
+             lang=None,
+             rpp=None,
+             page=None,
+             since_id=None,
+             geocode=None,
              show_user=None):
     '''Returns tweets that match a specified query.
 
     Args:
       query: The search query string, must be less than 140 characters
-      lang: 
-        Restricts tweets to the given language, given by an ISO 639-1 
+      lang:
+        Restricts tweets to the given language, given by an ISO 639-1
         code. [Optional]
       rpp:
         The number of tweets to return per page, up to a max of 100. [Optional]
-      page: 
+      page:
         The page number (starting at 1) to return, up to a max of
         roughly 1500 results (based on rpp * page. Note: there are
         pagination limits. [Optional]
-      since_id: 
+      since_id:
         Returns tweets with status ids greater than the given id. [Optional]
-      geocode:       
+      geocode:
         Returns tweets by users located within a given radius of the
         given latitude/longitude, where the user's location is taken
         from their Twitter profile. The parameter value is specified
@@ -860,7 +860,7 @@ class Api(object):
       A Results instance representing the search results
     '''
     url = 'http://search.twitter.com/search.json'
-    
+
     parameters = {'q': query}
     if len(query) > 140:
       raise TwitterError('query must be <= 140 characters')
@@ -1088,10 +1088,10 @@ class Api(object):
 
     Args:
       url: The URL to retrieve
-      post_data: 
+      post_data:
         A dict of (str, unicode) key/value pairs.  If set, POST will be used.
       parameters:
-        A dict whose key/value pairs should encoded and added 
+        A dict whose key/value pairs should encoded and added
         to the query string. [OPTIONAL]
       no_cache: If true, overrides the cache on the current request
 
@@ -1221,7 +1221,7 @@ class _FileCache(object):
         hashed_key = md5(key).hexdigest()
     except TypeError:
         hashed_key = md5.new(key).hexdigest()
-        
+
     return os.path.join(self._root_directory,
                         self._GetPrefix(hashed_key),
                         hashed_key)

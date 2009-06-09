@@ -132,7 +132,7 @@ def ComputeRelativeCreatedAt(status, now=None):
     now = time.time()
   fudge = 1.25
   created_at_in_seconds = ComputeCreatedAtInSeconds(status)
-  delta = int(now) - int(created_at_in_seconds)
+  delta = long(now) - long(created_at_in_seconds)
   if delta < (1 * fudge):
     return 'about a second ago'
   elif delta < (60 * (1/fudge)):
@@ -504,9 +504,9 @@ class Api(object):
     '''
     try:
       if id:
-        int(id)
+        long(id)
     except:
-      raise TwitterError("id must be an integer")
+      raise TwitterError("id must be a long integer")
     url = 'http://twitter.com/statuses/show/%s.json' % id
     json = self._FetchUrl(url)
     data = simplejson.loads(json)
@@ -527,9 +527,9 @@ class Api(object):
     '''
     try:
       if id:
-        int(id)
+        long(id)
     except:
-      raise TwitterError("id must be an integer")
+      raise TwitterError("id must be a long integer")
     url = 'http://twitter.com/statuses/destroy/%s.json' % id
     json = self._FetchUrl(url, post_data={})
     data = simplejson.loads(json)

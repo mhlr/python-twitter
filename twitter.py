@@ -559,9 +559,11 @@ class Api(object):
 
     url = 'http://twitter.com/statuses/update.json'
 
-    if len(status) > CHARACTER_LIMIT:
+    status_length = len(status)
+    if status_length > CHARACTER_LIMIT:
       raise TwitterError("Text must be less than or equal to %d characters. "
-                         "Consider using PostUpdates." % CHARACTER_LIMIT)
+                         "Was %d. Consider using PostUpdates." % 
+                         (CHARACTER_LIMIT, status_length))
 
     data = {'status': status}
     if in_reply_to_status_id:

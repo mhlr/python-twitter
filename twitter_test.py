@@ -375,6 +375,35 @@ class ApiTest(unittest.TestCase):
     # This is rather arbitrary, but spot checking is better than nothing
     self.assertEqual(u'Моё судно на воздушной подушке полно угрей', status.text)
 
+  def testAciiStatusLength(self):
+    '''Test the length check of ascii status updates'''
+    self._AddHandler('http://twitter.com/statuses/update.json',
+                     curry(self._OpenTestData, 'update.json'))
+    # Post 140 characters of ascii text
+    status = self._api.PostUpdate('abcdefghij' * 14)
+    # Post 141 characters of ascii text
+    try:
+      status = self._api.PostUpdate(('abcdefghij' * 14) + 'k')
+    except twitter.TwitterError:
+      pass  # expected
+    else:
+      self.fail('TwitterError expected')
+
+  def testUnicodeStatusLength(self):
+    '''Test the length check of ascii status updates'''
+    self._AddHandler('http://twitter.com/statuses/update.json',
+                     curry(self._OpenTestData, 'update.json'))
+    # Post 140 characters of unicode text
+    status = self._api.PostUpdate(u'абвгдежзий' * 14)
+    # Post 141 characters of unicode text
+    try:
+      status = self._api.PostUpdate((u'абвгдежзий' * 14) + u'к')
+    except twitter.TwitterError:
+      pass  # expected
+    else:
+      self.fail('TwitterError expected')
+
+
   def testGetReplies(self):
     '''Test the twitter.Api GetReplies method'''
     self._AddHandler('http://twitter.com/statuses/replies.json?page=1',

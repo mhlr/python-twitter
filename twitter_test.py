@@ -343,9 +343,9 @@ class ApiTest(unittest.TestCase):
 
   def testGetUserTimeline(self):
     '''Test the twitter.Api GetUserTimeline method'''
-    self._AddHandler('http://twitter.com/statuses/user_timeline/kesuke.json?count=1&since=Tue%2C+27+Mar+2007+22%3A55%3A48+GMT',
+    self._AddHandler('http://twitter.com/statuses/user_timeline/kesuke.json?count=1',
                      curry(self._OpenTestData, 'user_timeline-kesuke.json'))
-    statuses = self._api.GetUserTimeline('kesuke', count=1, since='Tue, 27 Mar 2007 22:55:48 GMT')
+    statuses = self._api.GetUserTimeline('kesuke', count=1)
     # This is rather arbitrary, but spot checking is better than nothing
     self.assertEqual(89512102, statuses[0].id)
     self.assertEqual(718443, statuses[0].user.id)

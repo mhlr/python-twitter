@@ -17,7 +17,7 @@
 '''A library that provides a python interface to the Twitter API'''
 
 __author__ = 'dewitt@google.com'
-__version__ = '0.6-devel'
+__version__ = '0.7-devel'
 
 
 import base64
@@ -1373,44 +1373,84 @@ class Api(object):
     self._CheckForTwitterError(data)
     return [Status.NewFromJsonDict(x) for x in data]
 
-  def GetUserTimeline(self, user=None, count=None, since=None, since_id=None):
-    '''Fetch the sequence of public twitter.Status messages for a single user.
+  def GetUserTimeline(self,
+                      id=None,
+                      user_id=None,
+                      screen_name=None,
+                      since_id=None,
+                      max_id=None,
+                      count=None,
+                      page=None):
+    '''Fetch the sequence of public Status messages for a single user.
 
     The twitter.Api instance must be authenticated if the user is private.
 
     Args:
-      user:
-        either the username (short_name) or id of the user to retrieve.  If
-        not specified, then the current authenticated user is used. [optional]
-      count: the number of status messages to retrieve [optional]
-      since:
-        Narrows the returned results to just those statuses created
-        after the specified HTTP-formatted date. [optional]
+      id:
+        Specifies the ID or screen name of the user for whom to return
+        the user_timeline. [optional]
+      user_id:
+        Specfies the ID of the user for whom to return the
+        user_timeline. Helpful for disambiguating when a valid user ID
+        is also a valid screen name. [optional]
+      screen_name:
+        Specfies the screen name of the user for whom to return the
+        user_timeline. Helpful for disambiguating when a valid screen
+        name is also a user ID. [optional]
       since_id:
         Returns only public statuses with an ID greater than (that is,
-        more recent than) the specified ID. [Optional]
+        more recent than) the specified ID. [optional]
+      max_id:
+        Returns only statuses with an ID less than (that is, older
+        than) or equal to the specified ID. [optional]
+      count:
+        Specifies the number of statuses to retrieve. May not be
+        greater than 200.  [optional]
+      page:
+         Specifies the page of results to retrieve. Note: there are
+         pagination limits. [optional]
 
     Returns:
-      A sequence of twitter.Status instances, one for each message up to count
+      A sequence of Status instances, one for each message up to count
     '''
-    try:
-      if count:
-        int(count)
-    except:
-      raise TwitterError("Count must be an integer")
     parameters = {}
-    if count:
-      parameters['count'] = count
-    if since:
-      parameters['since'] = since
-    if since_id:
-      parameters['since_id'] = since_id
-    if user:
-      url = 'http://twitter.com/statuses/user_timeline/%s.json' % user
-    elif not user and not self._username:
+
+    if id:
+      url = 'http://twitter.com/statuses/user_timeline/%s.json' % id
+    elif user_id:
+      url = 'http://twitter.com/statuses/user_timeline.xml?user_id=%d' % user_id
+    elif screen_name:
+      url = ('http://twitter.com/statuses/user_timeline.xml?screen_name=%s' %
+             screen_name)
+    elif not self._username:
       raise TwitterError("User must be specified if API is not authenticated.")
     else:
       url = 'http://twitter.com/statuses/user_timeline.json'
+
+    if since_id:
+      try:
+        parameters['since_id'] = int(since_id)
+      except:
+        raise TwitterError("since_id must be an integer")
+
+    if max_id:
+      try:
+        parameters['max_id'] = int(count)
+      except:
+        raise TwitterError("max_id must be an integer")
+
+    if count:
+      try:
+        parameters['count'] = int(count)
+      except:
+        raise TwitterError("count must be an integer")
+
+    if page:
+      try:
+        parameters['page'] = int(page)
+      except:
+        raise TwitterError("page must be an integer")
+
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)

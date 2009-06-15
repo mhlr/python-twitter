@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name:           python-twitter
-Version:        0.6
+Version:        0.7-devel
 Release:        1%{?dist}
 Summary:        Python Interface for Twitter API
 

@@ -17,7 +17,7 @@
 '''The setup and build script for the python-twitter library.'''
 
 __author__ = 'dewitt@google.com'
-__version__ = '0.6'
+__version__ = '0.7-devel'
 
 
 # The base package metadata to be used by both distutils and setuptools

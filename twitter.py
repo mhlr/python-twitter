@@ -452,9 +452,9 @@ class Api(object):
     if id:
       url = 'http://twitter.com/statuses/user_timeline/%s.json' % id
     elif user_id:
-      url = 'http://twitter.com/statuses/user_timeline.xml?user_id=%d' % user_id
+      url = 'http://twitter.com/statuses/user_timeline.json?user_id=%d' % user_id
     elif screen_name:
-      url = ('http://twitter.com/statuses/user_timeline.xml?screen_name=%s' %
+      url = ('http://twitter.com/statuses/user_timeline.json?screen_name=%s' %
              screen_name)
     elif not self._username:
       raise TwitterError("User must be specified if API is not authenticated.")

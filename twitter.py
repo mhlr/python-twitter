@@ -1435,7 +1435,7 @@ class Api(object):
 
     if max_id:
       try:
-        parameters['max_id'] = int(count)
+        parameters['max_id'] = int(max_id)
       except:
         raise TwitterError("max_id must be an integer")
 

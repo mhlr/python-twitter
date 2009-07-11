@@ -314,8 +314,7 @@ class ApiTest(unittest.TestCase):
 
   def setUp(self):
     self._urllib = MockUrllib()
-    api = twitter.Api(username='test', password='test')
-    api.SetCache(NullCache())
+    api = twitter.Api(username='test', password='test', cache=None)
     api.SetUrllib(self._urllib)
     self._api = api
 
@@ -513,23 +512,6 @@ class MockHTTPBasicAuthHandler(object):
   def add_password(self, realm, uri, user, passwd):
     # TODO(dewitt): Add verification that the proper args are passed
     pass
-
-
-class NullCache(object):
-  '''A no-op replacement for the cache class'''
-
-  def Get(self, key):
-    return None
-
-  def Set(self, key, data):
-    pass
-
-  def Remove(self, key):
-    pass
-
-  def GetCachedTime(self, key):
-    return None
-
 
 class curry:
   # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52549

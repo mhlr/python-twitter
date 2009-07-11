@@ -41,6 +41,9 @@ except ImportError:
 
 CHARACTER_LIMIT = 140
 
+# A singleton representing a lazily instantiated FileCache.
+DEFAULT_CACHE = object()
+
 
 class TwitterError(Exception):
   '''Base class for Twitter errors'''
@@ -1285,7 +1288,8 @@ class Api(object):
                username=None,
                password=None,
                input_encoding=None,
-               request_headers=None):
+               request_headers=None,
+               cache=DEFAULT_CACHE):
     '''Instantiate a new twitter.Api object.
 
     Args:
@@ -1293,8 +1297,11 @@ class Api(object):
       password: The password for the twitter account. [optional]
       input_encoding: The encoding used to encode input strings. [optional]
       request_header: A dictionary of additional HTTP request headers. [optional]
+      cache: 
+          The cache instance to use. Defaults to DEFAULT_CACHE. Use
+          None to disable caching. [optional]
     '''
-    self._cache = _FileCache()
+    self.SetCache(cache)
     self._urllib = urllib2
     self._cache_timeout = Api.DEFAULT_CACHE_TIMEOUT
     self._InitializeRequestHeaders(request_headers)
@@ -1846,9 +1853,12 @@ class Api(object):
     '''Override the default cache.  Set to None to prevent caching.
 
     Args:
-      cache: an instance that supports the same API as the  twitter._FileCache
+      cache: an instance that supports the same API as the twitter._FileCache
     '''
-    self._cache = cache
+    if cache == DEFAULT_CACHE:
+      self._cache = _FileCache()
+    else:
+      self._cache = cache
 
   def SetUrllib(self, urllib):
     '''Override the default urllib implementation.

@@ -40,7 +40,7 @@ message User {
   optional Status status = 18;
 
   message Profile {
-    // location to a user's avatar file
+    // location of a user's avatar file
     optional string image_url = 1;
     // hex RGB value for a user's background color
     optional string background_color = 2;
@@ -52,6 +52,10 @@ message User {
     optional string sidebar_fill_color = 5;
     // hex RGB value for a user's border color   
     optional string sidebar_border_color = 6; 
+    // location of a user's background image
+    optional string background_image_url = 7;
+    // true if the background image tiles
+    optional bool background_tile = 8;
   }
 }
 

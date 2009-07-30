@@ -99,6 +99,20 @@ _USER_PROFILE = descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    descriptor.FieldDescriptor(
+      name='background_image_url', full_name='twitter.User.Profile.background_image_url', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='background_tile', full_name='twitter.User.Profile.background_tile', index=7,
+      number=8, type=8, cpp_type=7, label=1,
+      default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],

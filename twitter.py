@@ -22,6 +22,7 @@ __version__ = '0.7-devel'
 
 import base64
 import calendar
+import httplib
 import os
 import rfc822
 import simplejson
@@ -1829,6 +1830,27 @@ class Api(object):
     '''
     url = 'http://twitter.com/users/show.json?email=%s' % email
     json = self._FetchUrl(url)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    return User.NewFromJsonDict(data)
+
+  def VerifyCredentials(self):
+    '''Returns a twitter.User instance if the authenticating user is valid.
+
+    Returns: 
+      A twitter.User instance representing that user if the
+      credentials are valid, None otherwise.
+    '''
+    if not self._username:
+      raise TwitterError("Api instance must first be given user credentials.")
+    url = 'http://twitter.com/account/verify_credentials.json'
+    try:
+      json = self._FetchUrl(url, no_cache=True)
+    except urllib2.HTTPError, http_error:
+      if http_error.code == httplib.UNAUTHORIZED:
+        return None
+      else:
+        raise http_error
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return User.NewFromJsonDict(data)

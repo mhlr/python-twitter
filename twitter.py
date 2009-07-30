@@ -29,6 +29,7 @@ import sys
 import tempfile
 import textwrap
 import time
+import httplib
 import urllib
 import urllib2
 import urlparse
@@ -935,6 +936,27 @@ class Api(object):
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return NewResultsFromJsonDict(data)
+
+  def VerifyCredentials(self):
+    '''Returns a twitter.User instance if the authenticating user is valid.
+
+    Returns: 
+      A twitter.User instance representing that user if the
+      credentials are valid, None otherwise.
+    '''
+    if not self._username:
+      raise TwitterError("Api instance must first be given user credentials.")
+    url = 'http://twitter.com/account/verify_credentials.json'
+    try:
+      json = self._FetchUrl(url, no_cache=True)
+    except urllib2.HTTPError, http_error:
+      if http_error.code == httplib.UNAUTHORIZED:
+        return None
+      else:
+        raise http_error
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    return NewUserFromJsonDict(data)
 
   def SetCredentials(self, username, password):
     '''Set the username and password for this instance

@@ -1437,13 +1437,13 @@ class Api(object):
 
     if since_id:
       try:
-        parameters['since_id'] = int(since_id)
+        parameters['since_id'] = long(since_id)
       except:
         raise TwitterError("since_id must be an integer")
 
     if max_id:
       try:
-        parameters['max_id'] = int(max_id)
+        parameters['max_id'] = long(max_id)
       except:
         raise TwitterError("max_id must be an integer")
 

@@ -332,7 +332,7 @@ class Api(object):
       password: The password for the twitter account. [optional]
       input_encoding: The encoding used to encode input strings. [optional]
       request_header: A dictionary of additional HTTP request headers. [optional]
-      cache: 
+      cache:
           The cache instance to use. Defaults to DEFAULT_CACHE. Use
           None to disable caching. [optional]
     '''
@@ -471,13 +471,13 @@ class Api(object):
 
     if since_id:
       try:
-        parameters['since_id'] = int(since_id)
+        parameters['since_id'] = long(since_id)
       except:
         raise TwitterError("since_id must be an integer")
 
     if max_id:
       try:
-        parameters['max_id'] = int(max_id)
+        parameters['max_id'] = long(max_id)
       except:
         raise TwitterError("max_id must be an integer")
 
@@ -570,7 +570,7 @@ class Api(object):
     status_length = len(status)
     if status_length > CHARACTER_LIMIT:
       raise TwitterError("Text must be less than or equal to %d characters. "
-                         "Was %d. Consider using PostUpdates." % 
+                         "Was %d. Consider using PostUpdates." %
                          (CHARACTER_LIMIT, status_length))
 
     data = {'status': status}
@@ -940,7 +940,7 @@ class Api(object):
   def VerifyCredentials(self):
     '''Returns a twitter.User instance if the authenticating user is valid.
 
-    Returns: 
+    Returns:
       A twitter.User instance representing that user if the
       credentials are valid, None otherwise.
     '''

@@ -318,14 +318,21 @@ _STATUS = descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
-      name='favorited', full_name='twitter.Status.favorited', index=7,
+      name='in_reply_to_screen_name', full_name='twitter.Status.in_reply_to_screen_name', index=7,
+      number=10, type=9, cpp_type=9, label=1,
+      default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='favorited', full_name='twitter.Status.favorited', index=8,
       number=8, type=8, cpp_type=7, label=1,
       default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
-      name='user', full_name='twitter.Status.user', index=8,
+      name='user', full_name='twitter.Status.user', index=9,
       number=9, type=11, cpp_type=10, label=1,
       default_value=None,
       message_type=None, enum_type=None, containing_type=None,

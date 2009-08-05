@@ -74,6 +74,8 @@ message Status {
   optional uint64 in_reply_to_status_id = 6;
   // unique id for the user that wrote the status a status replies to (see id)
   optional uint64 in_reply_to_user_id = 7;
+  // display name for the user that wrote the status a status replies to (see screen_name)
+  optional string in_reply_to_screen_name = 10;
   // boolean indicating if a status has been marked as a favorite
   optional bool favorited = 8;
   optional User user = 9;

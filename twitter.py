@@ -392,10 +392,10 @@ class Api(object):
     Returns:
       A sequence of Status instances, one for each message
     '''
+    if not user and not self._username:
+      raise TwitterError("User must be specified if API is not authenticated.")
     if user:
       url = 'http://twitter.com/statuses/friends_timeline/%s.json' % user
-    elif not user and not self._username:
-      raise TwitterError("User must be specified if API is not authenticated.")
     else:
       url = 'http://twitter.com/statuses/friends_timeline.json'
     parameters = {}
@@ -656,8 +656,8 @@ class Api(object):
     Returns:
       A sequence of twitter.User instances, one for each friend
     '''
-    if not self._username:
-      raise TwitterError("twitter.Api instance must be authenticated")
+    if not user and not self._username:
+      raise TwitterError("User must be specified if API is not authenticated.")
     if user:
       url = 'http://twitter.com/statuses/friends/%s.json' % user
     else:

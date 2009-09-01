@@ -122,6 +122,10 @@ _FILEOPTIONS_OPTIMIZEMODE = descriptor.EnumDescriptor(
       name='CODE_SIZE', index=1, number=2,
       options=None,
       type=None),
+    descriptor.EnumValueDescriptor(
+      name='LITE_RUNTIME', index=2, number=3,
+      options=None,
+      type=None),
   ],
   options=None,
 )
@@ -618,7 +622,14 @@ _MESSAGEOPTIONS = descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
-      name='uninterpreted_option', full_name='google.protobuf.MessageOptions.uninterpreted_option', index=1,
+      name='no_standard_descriptor_accessor', full_name='google.protobuf.MessageOptions.no_standard_descriptor_accessor', index=1,
+      number=2, type=8, cpp_type=7, label=1,
+      default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='uninterpreted_option', full_name='google.protobuf.MessageOptions.uninterpreted_option', index=2,
       number=999, type=11, cpp_type=10, label=3,
       default_value=[],
       message_type=None, enum_type=None, containing_type=None,

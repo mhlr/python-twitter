@@ -731,6 +731,84 @@ _RATELIMITSTATUS = descriptor.Descriptor(
   options=None)
 
 
+_RELATIONSHIP_USER = descriptor.Descriptor(
+  name='User',
+  full_name='twitter.Relationship.User',
+  filename='twitter.proto',
+  containing_type=None,
+  fields=[
+    descriptor.FieldDescriptor(
+      name='id', full_name='twitter.Relationship.User.id', index=0,
+      number=1, type=4, cpp_type=4, label=1,
+      default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='screen_name', full_name='twitter.Relationship.User.screen_name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='following', full_name='twitter.Relationship.User.following', index=2,
+      number=3, type=8, cpp_type=7, label=1,
+      default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='followed_by', full_name='twitter.Relationship.User.followed_by', index=3,
+      number=4, type=8, cpp_type=7, label=1,
+      default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='notifications_enabled', full_name='twitter.Relationship.User.notifications_enabled', index=4,
+      number=5, type=8, cpp_type=7, label=1,
+      default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],  # TODO(robinson): Implement.
+  enum_types=[
+  ],
+  options=None)
+
+_RELATIONSHIP = descriptor.Descriptor(
+  name='Relationship',
+  full_name='twitter.Relationship',
+  filename='twitter.proto',
+  containing_type=None,
+  fields=[
+    descriptor.FieldDescriptor(
+      name='source', full_name='twitter.Relationship.source', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='target', full_name='twitter.Relationship.target', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],  # TODO(robinson): Implement.
+  enum_types=[
+  ],
+  options=None)
+
+
 _USER.fields_by_name['profile'].message_type = _USER_PROFILE
 _USER.fields_by_name['status'].message_type = _STATUS
 _STATUS.fields_by_name['user'].message_type = _USER
@@ -739,6 +817,8 @@ _DIRECTMESSAGE.fields_by_name['recipient'].message_type = _USER
 _TRENDS.fields_by_name['trends'].message_type = _TRENDS_TREND
 _RESULTS.fields_by_name['results'].message_type = _RESULTS_RESULT
 _GEOCODE.fields_by_name['unit'].enum_type = _GEOCODE_UNIT
+_RELATIONSHIP.fields_by_name['source'].message_type = _RELATIONSHIP_USER
+_RELATIONSHIP.fields_by_name['target'].message_type = _RELATIONSHIP_USER
 
 class User(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
@@ -779,4 +859,12 @@ class Geocode(message.Message):
 class RateLimitStatus(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _RATELIMITSTATUS
+
+class Relationship(message.Message):
+  __metaclass__ = reflection.GeneratedProtocolMessageType
+  
+  class User(message.Message):
+    __metaclass__ = reflection.GeneratedProtocolMessageType
+    DESCRIPTOR = _RELATIONSHIP_USER
+  DESCRIPTOR = _RELATIONSHIP
 

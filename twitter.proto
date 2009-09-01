@@ -167,3 +167,17 @@ message RateLimitStatus {
   // number of API calls remaining for a user
   optional uint64 remaining_hits = 4;
 }
+
+message Relationship {
+
+  message User {
+    optional uint64 id = 1; 
+    optional string screen_name = 2;
+    optional bool following = 3;
+    optional bool followed_by = 4;
+    optional bool notifications_enabled = 5;
+  }
+
+  optional User source = 1;
+  optional User target = 2;
+}

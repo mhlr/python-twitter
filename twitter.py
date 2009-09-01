@@ -110,6 +110,41 @@ def NewStatusFromJsonDict(data):
   return status
 
 
+def NewRelationshipFromJsonDict(data):
+  '''Create a new Relationship instance based on a JSON dict.
+
+  Args:
+    data: A JSON dict, as parsed from a twitter API response
+  Returns:
+    A Relationship instance
+  '''
+  relationship = twitter_pb2.Relationship()
+  if 'source' in data:
+    relationship.source.CopyFrom(
+        NewRelationshipUserFromJsonDict(data['source']))
+  if 'target' in data:
+    relationship.target.CopyFrom(
+        NewRelationshipUserFromJsonDict(data['target']))
+  return relationship
+
+
+def NewRelationshipUserFromJsonDict(data):
+  '''Create a new Relationship.User instance based on a JSON dict.
+
+  Args:
+    data: A JSON dict, as parsed from a twitter API response
+  Returns:
+    A Relationship.User instance
+  '''
+  user = twitter_pb2.Relationship.User()
+  _CopyProperty(data, user, 'id')
+  _CopyProperty(data, user, 'screen_name')
+  _CopyProperty(data, user, 'following')
+  _CopyProperty(data, user, 'followed_by')
+  _CopyProperty(data, user, 'notifications_enabled')
+  return user
+
+
 def ComputeCreatedAtInSeconds(status):
   '''Returns the number of seconds past the epoch in the current timezone.
 
@@ -822,6 +857,47 @@ class Api(object):
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return NewUserFromJsonDict(data)
+
+  def ShowFriendships(self,
+                      source_id=None,
+                      source_screen_name=None,
+                      target_id=None,
+                      target_screen_name=None):
+    '''Returns detailed information about the relationship between two users.
+
+    Either source_id or source_screen_name must be supplied if the
+    request is not unauthenticated.
+
+    Args:
+      source_id: The user_id of the subject user. [semi-optional, see above]
+      source_screen_name: 
+          The screen_name of the subject user. [semi-optional, see above]
+      target_id: 
+          The user_id of the target user. [one of target_id or 
+          target_screen_name required]
+      target_screen_name: 
+          The screen_name of the target user. [one of target_id or 
+          target_screen_name required]
+    Returns:
+      A Relationship instance.
+    '''
+    url = 'http://twitter.com/friendships/show.json'
+    if not self._username and not source_id and not source_screen_name:
+      raise TwitterError("Source must be specified if not authenticated.")
+    parameters = {}
+    if source_id:
+      parameters['source_id'] = source_id
+    if source_screen_name:
+      parameters['source_screen_name'] = source_screen_name
+    if target_id:
+      parameters['target_id'] = target_id
+    if target_screen_name:
+      parameters['target_screen_name'] = target_screen_name
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    return NewRelationshipFromJsonDict(data)
+
 
   def CreateFavorite(self, status):
     '''Favorites the status specified in the status parameter as the authenticating user.

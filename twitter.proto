@@ -176,6 +176,7 @@ message Relationship {
     optional bool following = 3;
     optional bool followed_by = 4;
     optional bool notifications_enabled = 5;
+    optional bool blocking = 6;
   }
 
   optional User source = 1;

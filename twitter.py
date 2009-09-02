@@ -119,12 +119,15 @@ def NewRelationshipFromJsonDict(data):
     A Relationship instance
   '''
   relationship = twitter_pb2.Relationship()
-  if 'source' in data:
+  if 'relationship' not in data:
+    return None
+  relationship_data = data['relationship']
+  if 'source' in relationship_data:
     relationship.source.CopyFrom(
-        NewRelationshipUserFromJsonDict(data['source']))
-  if 'target' in data:
+        NewRelationshipUserFromJsonDict(relationship_data['source']))
+  if 'target' in relationship_data:
     relationship.target.CopyFrom(
-        NewRelationshipUserFromJsonDict(data['target']))
+        NewRelationshipUserFromJsonDict(relationship_data['target']))
   return relationship
 
 
@@ -142,6 +145,7 @@ def NewRelationshipUserFromJsonDict(data):
   _CopyProperty(data, user, 'following')
   _CopyProperty(data, user, 'followed_by')
   _CopyProperty(data, user, 'notifications_enabled')
+  _CopyProperty(data, user, 'blocking')
   return user
 
 

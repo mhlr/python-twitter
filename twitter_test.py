@@ -490,6 +490,29 @@ class ApiTest(unittest.TestCase):
     results = self._api.Search('twitter')
     self.assertEqual(10, len(results.results))
 
+  def testShowFriendships(self):
+    '''Test the Twitter.Api ShowFriendships method'''
+    self._AddHandler(
+      'http://twitter.com/friendships/show.json' +
+      '?target_screen_name=ev' +
+      '&source_screen_name=dewitt',
+      curry(self._OpenTestData, 'show_friendships.json'))
+    relationship = self._api.ShowFriendships(
+        source_screen_name='dewitt', target_screen_name='ev')
+    self.assertTrue(relationship != None)
+    self.assertTrue(relationship._has_source)
+    self.assertTrue(relationship._has_target)
+    self.assertEqual(True, relationship.target.following)
+    self.assertEqual(True, relationship.target.followed_by)
+    self.assertEqual(20, relationship.target.id)
+    self.assertEqual('ev', relationship.target.screen_name)
+    self.assertEqual(False, relationship.source.notifications_enabled)
+    self.assertEqual(False, relationship.source.blocking)
+    self.assertEqual(True, relationship.source.following)
+    self.assertEqual(True, relationship.source.followed_by)
+    self.assertEqual(673483, relationship.source.id)
+    self.assertEqual('dewitt', relationship.source.screen_name)
+    
   def _AddHandler(self, url, callback):
     self._urllib.AddHandler(url, callback)
 

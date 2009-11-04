@@ -18,6 +18,7 @@
 
 __author__ = 'dewitt@google.com'
 __version__ = '0.6-devel'
+__branch__ = 'dudarev-lists'
 
 
 import base64
@@ -292,6 +293,26 @@ def NewResultFromJsonDict(data):
   _CopyProperty(data, result, 'to_user_id')
   return result
 
+def NewListFromJsonDict(data):
+  '''Create a new List instance based on a JSON dict.
+
+  Args:
+    data: A JSON dict, as parsed from a twitter API response
+  Returns:
+    A List instance
+  '''
+  result = twitter_pb2.List()
+  _CopyProperty(data, result, 'member_count')
+  _CopyProperty(data, result, 'name')
+  _CopyProperty(data, result, 'subscriber_count')
+  _CopyProperty(data, result, 'uri')
+  _CopyProperty(data, result, 'slug')
+  _CopyProperty(data, result, 'full_name')
+  _CopyProperty(data, result, 'full_name')
+  _CopyProperty(data, result, 'id')
+  if 'user' in data:
+    result.user.CopyFrom(NewUserFromJsonDict(data['user']))
+  return result
 
 class Api(object):
   '''A python interface into the Twitter API
@@ -352,6 +373,23 @@ class Api(object):
       >>> api.DestroyFriendship(user)
       >>> api.CreateFriendship(user)
       >>> api.GetUserByEmail(email)
+
+    Recently introduced list methods:
+
+      >>> api.GetUserLists(user, cursor)
+      >>> api.GetListMembers(list_slug, user, cursor)
+      >>> api.GetList(list_slug, user)
+
+    Example usage of lists:
+
+      >>> api = twitter.Api(username="",password="")
+      >>> members = api.GetListMembers('list_slug')
+      >>> members['users'][0].screen_name
+      >>> members = api.GetListMembers('list_slug',cursor=members['next_cursor'])
+      >>> members['users'][0].screen_name
+      >>> list = api.GetList('list_slug')
+      >>> list.member_count
+      >>> lists = api.GetUserLists()
   '''
 
   DEFAULT_CACHE_TIMEOUT = 60 # cache for 1 minute
@@ -950,6 +988,94 @@ class Api(object):
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return NewUserFromJsonDict(data)
+
+  # some functions from just annouced lists API
+  # http://groups.google.com/group/twitter-api-announce/browse_thread/thread/617bdef9f6b08372/6f583f6719d5e1ad?show_docid=6f583f6719d5e1ad&pli=1
+  def GetUserLists(self, user=None, cursor=None):
+    '''Fetch the sequence of twitter.List instances for a given user.
+
+    Args:
+      user: the username or id of the user whose friends you are fetching.  If
+      not specified, defaults to the authenticated user. [optional]
+      cursor: previous/next_cursor from which to fetch, serves as a pagination 
+      parameter. [optional]
+
+    The twitter.Api instance must be authenticated.
+
+    Returns:
+      A dictionary data with keys: 'previous_cursor', 'next_cursor', 'lists'
+      data['lists'] is a sequence of twitter.Lists instances.
+    '''
+    if not user and not self._username:
+      raise TwitterError("User must be specified if API is not authenticated.")
+    if user:
+      url = 'http://twitter.com/%s/lists.json' % user
+    else:
+      url = 'http://twitter.com/%s/lists.json' % self._username
+    parameters = {}
+    if cursor:
+      parameters['cursor'] = cursor
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    data['lists'] = [NewListFromJsonDict(x) for x in data['lists']]
+    return data
+
+  def GetListMembers(self, list_slug, user=None, cursor=None):
+    '''Fetch the sequence of twitter.User for a given
+
+    Args:
+      list_slug: list slug
+      user: the username or id of the user whose friends you are fetching.  If
+      not specified, defaults to the authenticated user. [optional]
+      cursor: previous/next_cursor from which to fetch, serves as a pagination
+      parameter. [optional]
+
+    The twitter.Api instance must be authenticated.
+
+    Returns:
+      A dictionary data with keys: 'previous_cursor', 'next_cursor', 'users'
+      data['users'] is a sequence of twitter.User instances.
+    '''
+    if not user and not self._username:
+      raise TwitterError("User must be specified if API is not authenticated.")
+    if user:
+      url = 'http://twitter.com/%s/%s/members.json' % (user,list_slug)
+    else:
+      url = 'http://twitter.com/%s/%s/members.json' % (self._username,list_slug)
+    parameters = {}
+    if cursor:
+      parameters['cursor'] = cursor 
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    data['users'] = [NewUserFromJsonDict(x) for x in data['users']]
+    return data
+
+  def GetList(self, list_slug, user=None):
+    '''Fetch the List for a given user.
+
+    Args:
+      list_slug: slug of the list to fetch
+      user: the username or id of the user whose friends you are fetching.  If
+      not specified, defaults to the authenticated user. [optional]
+
+    The twitter.Api instance must be authenticated.
+
+    Returns:
+      The list information.
+    '''
+    if not user and not self._username:
+      raise TwitterError("User must be specified if API is not authenticated.")
+    if user:
+      url = 'http://twitter.com/%s/lists/%s.json' % (user,list_slug)
+    else:
+      url = 'http://twitter.com/%s/lists/%s.json' % (self._username,list_slug)
+    parameters = {}
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    return NewListFromJsonDict(data)
 
   def Search(self,
              query,

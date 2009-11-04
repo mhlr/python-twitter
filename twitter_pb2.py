@@ -644,6 +644,84 @@ _RESULTS = descriptor.Descriptor(
   options=None)
 
 
+_LIST = descriptor.Descriptor(
+  name='List',
+  full_name='twitter.List',
+  filename='twitter.proto',
+  containing_type=None,
+  fields=[
+    descriptor.FieldDescriptor(
+      name='member_count', full_name='twitter.List.member_count', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='name', full_name='twitter.List.name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='subscriber_count', full_name='twitter.List.subscriber_count', index=2,
+      number=3, type=13, cpp_type=3, label=1,
+      default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='uri', full_name='twitter.List.uri', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='slug', full_name='twitter.List.slug', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='user', full_name='twitter.List.user', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='full_name', full_name='twitter.List.full_name', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='id', full_name='twitter.List.id', index=7,
+      number=8, type=4, cpp_type=4, label=1,
+      default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='mode', full_name='twitter.List.mode', index=8,
+      number=9, type=9, cpp_type=9, label=1,
+      default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],  # TODO(robinson): Implement.
+  enum_types=[
+  ],
+  options=None)
+
+
 _GEOCODE = descriptor.Descriptor(
   name='Geocode',
   full_name='twitter.Geocode',
@@ -823,6 +901,7 @@ _DIRECTMESSAGE.fields_by_name['sender'].message_type = _USER
 _DIRECTMESSAGE.fields_by_name['recipient'].message_type = _USER
 _TRENDS.fields_by_name['trends'].message_type = _TRENDS_TREND
 _RESULTS.fields_by_name['results'].message_type = _RESULTS_RESULT
+_LIST.fields_by_name['user'].message_type = _USER
 _GEOCODE.fields_by_name['unit'].enum_type = _GEOCODE_UNIT
 _RELATIONSHIP.fields_by_name['source'].message_type = _RELATIONSHIP_USER
 _RELATIONSHIP.fields_by_name['target'].message_type = _RELATIONSHIP_USER
@@ -858,6 +937,10 @@ class Results(message.Message):
     __metaclass__ = reflection.GeneratedProtocolMessageType
     DESCRIPTOR = _RESULTS_RESULT
   DESCRIPTOR = _RESULTS
+
+class List(message.Message):
+  __metaclass__ = reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _LIST
 
 class Geocode(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType

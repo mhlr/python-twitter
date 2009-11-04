@@ -18,7 +18,7 @@
 
 __author__ = 'dewitt@google.com'
 __version__ = '0.6-devel'
-__branch__ = 'dudarev-lists'
+__branch__ = 'dev'
 
 
 import base64
@@ -382,10 +382,10 @@ class Api(object):
 
     Example usage of lists:
 
-      >>> api = twitter.Api(username="",password="")
+      >>> api = twitter.Api(username="", password="")
       >>> members = api.GetListMembers('list_slug')
       >>> members['users'][0].screen_name
-      >>> members = api.GetListMembers('list_slug',cursor=members['next_cursor'])
+      >>> members = api.GetListMembers('list_slug', cursor=members['next_cursor'])
       >>> members['users'][0].screen_name
       >>> list = api.GetList('list_slug')
       >>> list.member_count
@@ -989,8 +989,7 @@ class Api(object):
     self._CheckForTwitterError(data)
     return NewUserFromJsonDict(data)
 
-  # some functions from just annouced lists API
-  # http://groups.google.com/group/twitter-api-announce/browse_thread/thread/617bdef9f6b08372/6f583f6719d5e1ad?show_docid=6f583f6719d5e1ad&pli=1
+  # some functions from lists API
   def GetUserLists(self, user=None, cursor=None):
     '''Fetch the sequence of twitter.List instances for a given user.
 
@@ -1037,6 +1036,8 @@ class Api(object):
       A dictionary data with keys: 'previous_cursor', 'next_cursor', 'users'
       data['users'] is a sequence of twitter.User instances.
     '''
+    if not list_slug:
+      raise TwitterError("List slug must be specified.")
     if not user and not self._username:
       raise TwitterError("User must be specified if API is not authenticated.")
     if user:

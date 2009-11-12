@@ -58,7 +58,8 @@ Check out the latest development version anonymously with:
 
 {{{
   $ hg clone https://python-twitter.googlecode.com/hg/ python-twitter
-  $ hg branch dev
+  $ cd python-twitter
+  $ hg update dev
 }}}
 
 ==Documentation==

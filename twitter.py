@@ -364,6 +364,7 @@ class Api(object):
       >>> api.GetStatus(id)
       >>> api.DestroyStatus(id)
       >>> api.GetFriendsTimeline(user)
+      >>> api.GetFavorites(user)
       >>> api.GetFriends(user)
       >>> api.GetFollowers()
       >>> api.GetFeatured()
@@ -720,6 +721,44 @@ class Api(object):
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return [NewStatusFromJsonDict(x) for x in data]
+
+  def GetFavorites(self,
+                   user=None,
+                   page=None):
+    '''Fetch the sequence of Status messages a user has favorited.
+
+    The twitter.Api instance must be authenticated if the user is private.
+
+    Args:
+      user:
+        Specifies the ID or screen name of the user for whom to return
+        the friends_timeline.  If unspecified, the username and password
+        must be set in the twitter.Api instance.  [Optional]
+      page:
+        Specifies the page of favorites to retrieve.  [Optional]
+
+    Returns:
+      A sequence of Status instances, one for each message
+    '''
+    if not user and not self._username:
+      raise TwitterError("User must be specified if API is not authenticated.")
+    if user:
+      url = 'http://twitter.com/favorites/%s.json' % user
+    else:
+      url = 'http://twitter.com/favorites.json'
+    parameters = {}
+    if page is not None:
+      try:
+        if int(page) > 20:
+          raise TwitterError("'page' may not be greater than 20")
+      except ValueError:
+        raise TwitterError("'page' must be an integer")
+      parameters['page'] = page
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    return [NewStatusFromJsonDict(x) for x in data]
+
 
   def GetFriends(self, user=None, page=None):
     '''Fetch the sequence of twitter.User instances, one for each friend.

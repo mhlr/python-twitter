@@ -6,6 +6,9 @@
  The patch was originally submitted by user ghills, adapted by livibetter and
  adapted even further by JimMoefoe (read the comments for the full details :) )
 
+ Applying patch submitted by markus.magnuson to add new method GetFriendIDs
+ Issue 94 http://code.google.com/p/python-twitter/issues/detail?id=94
+
 2009-06-13
 
  Releasing 0.6 to help people avoid the Twitpocalypse.

@@ -1743,6 +1743,39 @@ class Api(object):
     self._CheckForTwitterError(data)
     return [User.NewFromJsonDict(x) for x in data]
 
+  def GetFriendIDs(self, user=None, page=None):
+      '''Returns a list of twitter user id's for every person
+      the specified user is following.
+
+      Args:
+        user:
+          The id or screen_name of the user to retrieve the id list for
+          [optional]
+        page:
+          Specifies the page number of the results beginning at 1.
+          A single page contains 5000 ids. This is recommended for users
+          with large id lists. If not provided all id's are returned. 
+          (Please note that the result set isn't guaranteed to be 5000 
+          every time as suspended users will be filtered.)
+          [optional]
+
+      Returns:
+        A list of integers, one for each user id.
+      '''
+      if not user and not self._username:
+          raise TwitterError("twitter.Api instance must be authenticated")
+      if user:
+          url = 'http://twitter.com/friends/ids/%s.json' % user 
+      else:
+          url = 'http://twitter.com/friends/ids.json'
+      parameters = {}
+      if page:
+          parameters['page'] = page
+      json = self._FetchUrl(url, parameters=parameters)
+      data = simplejson.loads(json)
+      self._CheckForTwitterError(data)
+      return data
+
   def GetFollowers(self, page=None):
     '''Fetch the sequence of twitter.User instances, one for each follower
 

@@ -1317,7 +1317,8 @@ class Api(object):
                password=None,
                input_encoding=None,
                request_headers=None,
-               cache=DEFAULT_CACHE):
+               cache=DEFAULT_CACHE
+               shortner=None):
     '''Instantiate a new twitter.Api object.
 
     Args:
@@ -1328,6 +1329,9 @@ class Api(object):
       cache: 
           The cache instance to use. Defaults to DEFAULT_CACHE. Use
           None to disable caching. [optional]
+      shortner:
+          The shortner instance to use.  Defaults to None.
+          See shorten_url.py for an example shortner. [optional]
     '''
     self.SetCache(cache)
     self._urllib = urllib2

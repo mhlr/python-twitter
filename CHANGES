@@ -1,3 +1,9 @@
+2010-05-16
+
+ Issue 19 http://code.google.com/p/python-twitter/issues/detail?id=19
+ TinyURL example and the idea for this comes from a bug filed by
+ acolorado with patch provided by ghills.
+
 2010-01-24
 
  Applying patch submitted to fix Issue 70

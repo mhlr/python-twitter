@@ -2002,6 +2002,85 @@ class Api(object):
     self._CheckForTwitterError(data)
     return Status.NewFromJsonDict(data)
 
+  def GetFavorites(self,
+                   user=None,
+                   page=None):
+    '''Return a list of Status objects representing favorited tweets.
+    By default, returns the (up to) 20 most recent tweets for the
+    authenticated user.
+    
+    Args:
+      user:
+        The username or id of the user whose favorites you are fetching.
+        If not specified, defaults to the authenticated user. [optional]
+    
+      page:
+        Retrieves the 20 next most recent favorite statuses. [optional]
+    '''
+    parameters = {}
+
+    if page:
+      parameters['page'] = page
+
+    if user:
+      url = '%s/favorites/%s.json' % (self.base_url, user)
+    elif not user and not self._username:
+      raise TwitterError("User must be specified if API is not authenticated.")
+    else:
+      url = '%s/favorites.json' % self.base_url
+
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+
+    self._CheckForTwitterError(data)
+
+    return [Status.NewFromJsonDict(x) for x in data]
+
+  def GetMentions(self,
+                  since_id=None,
+                  max_id=None,
+                  page=None):
+    '''Returns the 20 most recent mentions (status containing @username)
+    for the authenticating user.
+    
+    Args:
+      since_id:
+        Returns only public statuses with an ID greater than
+        (that is, more recent than) the specified ID. [optional]
+    
+      max_id:
+        Returns only statuses with an ID less than
+        (that is, older than) the specified ID.  [optional]
+    
+      page:
+        Retrieves the 20 next most recent replies. [optional]
+    
+    Returns:
+      A sequence of twitter.Status instances, one for each mention of the user.
+      see: http://apiwiki.twitter.com/REST-API-Documentation#statuses/mentions
+    '''
+
+    url = '%s/statuses/mentions.json' % self.base_url
+
+    if not self._username:
+      raise TwitterError("The twitter.Api instance must be authenticated.")
+
+    parameters = {}
+
+    if since_id:
+      parameters['since_id'] = since_id
+    if max_id:
+      parameters['max_id'] = max_id
+    if page:
+      parameters['page'] = page
+
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+
+    self._CheckForTwitterError(data)
+
+    return [Status.NewFromJsonDict(x) for x in data]
+
   def GetUserByEmail(self, email):
     '''Returns a single user by email address.
 

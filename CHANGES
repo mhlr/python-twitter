@@ -6,6 +6,10 @@
 
  Multiple typo, indent and whitespace tweaks
 
+ Issue 60  http://code.google.com/p/python-twitter/issues/detail?id=60
+ Pulled out new GetFavorites and GetMentions methods from the patch
+ submitted by joegermuska
+
 2010-05-16
 
  Issue 19 http://code.google.com/p/python-twitter/issues/detail?id=19

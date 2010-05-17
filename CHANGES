@@ -1,3 +1,11 @@
+2010-05-17
+
+ Issue 50 http://code.google.com/p/python-twitter/issues/detail?id=50
+ Applied patch by wheaties.box that implements a new method to return
+ the Rate Limit Status and also adds the new method MaximumHitFrequency
+
+ Multiple typo, indent and whitespace tweaks
+
 2010-05-16
 
  Issue 19 http://code.google.com/p/python-twitter/issues/detail?id=19
@@ -12,7 +20,7 @@
  Original issue by kotecha.ravi, patch by wiennat and with implementation
  tweaks by bear.
 
- Issue 45 http://code.google.com/p/python-twitter/issues/detail?id=37
+ Issue 45 http://code.google.com/p/python-twitter/issues/detail?id=45
  Two grammar fixes for relative_created_at property
  Patches by thomasdyson and chris.boardman07
 

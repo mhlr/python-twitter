@@ -1347,108 +1347,134 @@ class Api(object):
     self._input_encoding = input_encoding
     self.SetCredentials(username, password)
     if base_url is None:
-        self.base_url = 'https://twitter.com'
+      self.base_url = 'https://twitter.com'
     else:
-        self.base_url = base_url
+      self.base_url = base_url
 
-  def GetPublicTimeline(self, since_id=None):
+  def GetPublicTimeline(self,
+                        since_id=None):
     '''Fetch the sequnce of public twitter.Status message for all users.
 
     Args:
       since_id:
-        Returns only public statuses with an ID greater than (that is,
-        more recent than) the specified ID. [Optional]
+        Returns only public statuses with an ID greater than
+        (that is, more recent than) the specified ID. [optional]
 
     Returns:
       An sequence of twitter.Status instances, one for each message
     '''
     parameters = {}
+
     if since_id:
       parameters['since_id'] = since_id
-    url = '%s/statuses/public_timeline.json' % self.base_url
+
+    url  = '%s/statuses/public_timeline.json' % self.base_url
     json = self._FetchUrl(url,  parameters=parameters)
     data = simplejson.loads(json)
+
     self._CheckForTwitterError(data)
+
     return [Status.NewFromJsonDict(x) for x in data]
 
-  def FilterPublicTimeline(self, term, since_id=None):
-        ''' Filter the public twitter timeline by a given search term on
-            the local machine.
-        Args:
-            term:
-             term to search by.
-            since_id:
-             Returns only public statuses with an ID greater than (that is,
-               more recent than) the specified ID. [Optional]
-
-        Returns:
-            A sequence of twitter.Status instances, one for each message 
-            containing the term
-        '''
-        statuses = self.GetPublicTimeline(since_id)
-        results = []
-
-        for s in statuses:
-            if s.text.lower().find(term.lower()) != -1:
-                results.append(s)
-        return results
-
-  def GetSearch(self, term, geocode=None, since_id=None, 
-          per_page=15, page=1, lang="en", show_user="true", query_users=False):
-    ''' Return twitter search results for a given term.
+  def FilterPublicTimeline(self,
+                           term,
+                           since_id=None):
+    '''Filter the public twitter timeline by a given search term on
+    the local machine.
 
     Args:
       term:
-       term to search by.
+        term to search by.
       since_id:
-       Returns only public statuses with an ID greater than (that is,
-         more recent than) the specified ID. [Optional]
-      geocode:
-       geolocation information in the form (latitude, longitude, radius) [Optional]
-      per_page:
-       number of results to return [Optional] default=15
-      page:
-       which page of search results to return
-      lang:
-       language for results [Optional] default english
-      show_user:
-       prefixes screen name in status
-      query_users:
-       If sets to False, then all users only have screen_name and
-       profile_image_url available. If sets to True, all information of users
-       are available, but it uses lots of request quota, one per status.
+        Returns only public statuses with an ID greater than
+        (that is, more recent than) the specified ID. [optional]
+
     Returns:
-      A sequence of twitter.Status instances, one for each 
-      message containing the term
+      A sequence of twitter.Status instances, one for each message
+      containing the term
+    '''
+    statuses = self.GetPublicTimeline(since_id)
+    results  = []
+
+    for s in statuses:
+      if s.text.lower().find(term.lower()) != -1:
+        results.append(s)
+
+    return results
+
+  def GetSearch(self,
+                term,
+                geocode=None,
+                since_id=None,
+                per_page=15,
+                page=1,
+                lang="en",
+                show_user="true",
+                query_users=False):
+    '''Return twitter search results for a given term.
+
+    Args:
+      term:
+        term to search by.
+      since_id:
+        Returns only public statuses with an ID greater than
+        (that is, more recent than) the specified ID. [optional]
+      geocode:
+        geolocation information in the form (latitude, longitude, radius)
+        [optional]
+      per_page:
+        number of results to return.  Default is 15 [optional]
+      page:
+        which page of search results to return
+      lang:
+        language for results.  Default is English [optional]
+      show_user:
+        prefixes screen name in status
+      query_users:
+        If set to False, then all users only have screen_name and
+        profile_image_url available.
+        If set to True, all information of users are available,
+        but it uses lots of request quota, one per status.
+    Returns:
+      A sequence of twitter.Status instances, one for each message containing
+      the term
     '''
     # Build request parameters
     parameters = {}
+
     if since_id:
       parameters['since_id'] = since_id
+
     if not term:
       return []
+
     parameters['q'] = urllib.quote_plus(term)
     parameters['show_user'] = show_user
     parameters['lang'] = lang
     parameters['rpp'] = per_page
     parameters['page'] = page
+
     if geocode is not None:
       parameters['geocode'] = ','.join(map(str, geocode))
 
     # Make and send requests
-    url = 'http://search.twitter.com/search.json'
-    json = self._FetchUrl(url,  parameters=parameters)
+    url  = 'http://search.twitter.com/search.json'
+    json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
+
     self._CheckForTwitterError(data)
 
     results = []
+
     for x in data['results']:
       temp = Status.NewFromJsonDict(x)
+
       if query_users:
         # Build user object with new request
         temp.user = self.GetUser(urllib.quote(x['from_user']))
       else:
         temp.user = User(screen_name=x['from_user'], profile_image_url=x['profile_image_url'])
+
       results.append(temp)
 
     # Return built list of statuses
@@ -2093,6 +2119,51 @@ class Api(object):
         the 'source' parameter.
     '''
     self._default_params['source'] = source
+
+  def GetRateLimitStatus(self):
+    '''Fetch the rate limit status for the currently authorized user.
+    
+    Returns:
+      A dictionary containing the time the limit will reset (reset_time),
+      the number of remaining hits allowed before the reset (remaining_hits),
+      the number of hits allowed in a 60-minute period (hourly_limit), and the
+      time of the reset in seconds since The Epoch (reset_time_in_seconds).
+    '''
+    url  = '%s/account/rate_limit_status.json' % self.base_url
+    json = self._FetchUrl(url, no_cache=True)
+    data = simplejson.loads(json)
+
+    self._CheckForTwitterError(data)
+
+    return data
+
+  def MaximumHitFrequency(self):
+    '''Determines the minimum number of seconds that a program must wait before
+    hitting the server again without exceeding the rate_limit imposed for the
+    currently authenticated user.
+    
+    Returns:
+      The minimum second interval that a program must use so as to not exceed
+      the rate_limit imposed for the user.
+    '''
+    rate_status = self.GetRateLimitStatus()
+    reset_time  = rate_status.get('reset_time', None)
+    limit       = rate_status.get('remaining_hits', None)
+
+    if reset_time and limit:
+      # put the reset time into a datetime object
+      reset = datetime.datetime(*rfc822.parsedate(reset_time)[:7])
+
+      # find the difference in time between now and the reset time + 1 hour
+      delta = reset + datetime.timedelta(hours=1) - datetime.datetime.utcnow()
+
+      # determine the minimum number of seconds allowed as a regular interval
+      max_frequency = int(delta.seconds / limit)
+
+      # return the number of seconds
+      return max_frequency
+
+    return 0
 
   def _BuildUrl(self, url, path_elements=None, extra_params=None):
     # Break url into consituent parts

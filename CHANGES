@@ -11,7 +11,10 @@
  https instead of http.
  Original issue by kotecha.ravi, patch by wiennat and with implementation
  tweaks by bear.
- Also fixed typo in init() param list.
+
+ Issue 45 http://code.google.com/p/python-twitter/issues/detail?id=37
+ Two grammar fixes for relative_created_at property
+ Patches by thomasdyson and chris.boardman07
 
 2010-01-24
 

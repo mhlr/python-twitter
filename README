@@ -128,7 +128,7 @@ To fetch a list a user's friends (requires authentication):
 To post a twitter status message (requires authentication):
 
 {{{ 
-  >>> status = api.PostUpdate(username, password, 'I love python-twitter!')
+  >>> status = api.PostUpdate('I love python-twitter!')
   >>> print status.text
   I love python-twitter!
 }}}

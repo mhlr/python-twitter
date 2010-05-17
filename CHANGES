@@ -4,6 +4,15 @@
  TinyURL example and the idea for this comes from a bug filed by
  acolorado with patch provided by ghills.
 
+ Issue 37 http://code.google.com/p/python-twitter/issues/detail?id=37
+ Added base_url to the twitter.API class init call to allow the user
+ to override the default https://twitter.com base.  Since Twitter now
+ supports https for all calls I (bear) changed the patch to default to
+ https instead of http.
+ Original issue by kotecha.ravi, patch by wiennat and with implementation
+ tweaks by bear.
+ Also fixed typo in init() param list.
+
 2010-01-24
 
  Applying patch submitted to fix Issue 70

@@ -33,6 +33,8 @@ import time
 import urllib
 import urllib2
 import urlparse
+import gzip
+import StringIO
 
 try:
   from hashlib import md5
@@ -1320,23 +1322,31 @@ class Api(object):
                request_headers=None,
                cache=DEFAULT_CACHE,
                shortner=None,
-               base_url=None):
+               base_url=None,
+               use_gzip_compression=False):
     '''Instantiate a new twitter.Api object.
 
     Args:
-      username: The username of the twitter account.  [optional]
-      password: The password for the twitter account. [optional]
-      input_encoding: The encoding used to encode input strings. [optional]
-      request_header: A dictionary of additional HTTP request headers. [optional]
-      cache: 
-          The cache instance to use. Defaults to DEFAULT_CACHE. Use
-          None to disable caching. [optional]
+      username:
+        The username of the twitter account.  [optional]
+      password:
+        The password for the twitter account. [optional]
+      input_encoding:
+        The encoding used to encode input strings. [optional]
+      request_header:
+        A dictionary of additional HTTP request headers. [optional]
+      cache:
+        The cache instance to use. Defaults to DEFAULT_CACHE.
+        Use None to disable caching. [optional]
       shortner:
-          The shortner instance to use.  Defaults to None.
-          See shorten_url.py for an example shortner. [optional]
+        The shortner instance to use.  Defaults to None.
+        See shorten_url.py for an example shortner. [optional]
       base_url:
-          The base URL to use to contact the Twitter API.
-          Defaults to https://twitter.com. [optional]
+        The base URL to use to contact the Twitter API.
+        Defaults to https://twitter.com. [optional]
+      use_gzip_compression:
+        Set to True to tell enable gzip compression for any call
+        made to Twitter.  Defaults to False. [optional]
     '''
     self.SetCache(cache)
     self._urllib = urllib2
@@ -1345,6 +1355,7 @@ class Api(object):
     self._InitializeUserAgent()
     self._InitializeDefaultParameters()
     self._input_encoding = input_encoding
+    self._use_gzip = use_gzip_compression
     self.SetCredentials(username, password)
     if base_url is None:
       self.base_url = 'https://twitter.com'
@@ -2291,6 +2302,14 @@ class Api(object):
     if self._request_headers and 'Authorization' in self._request_headers:
       del self._request_headers['Authorization']
 
+  def _DecompressGzippedResponse(self, response):
+    raw_data = response.read()
+    if response.headers.get('content-encoding', None) == 'gzip':
+      url_data = gzip.GzipFile(fileobj=StringIO.StringIO(raw_data)).read()
+    else:
+      url_data = raw_data
+    return url_data
+
   def _GetOpener(self, url, username=None, password=None):
     if username and password:
       self._AddAuthorizationHeader(username, password)
@@ -2361,17 +2380,26 @@ class Api(object):
                 url,
                 post_data=None,
                 parameters=None,
-                no_cache=None):
+                no_cache=None,
+                use_gzip_compression=None):
     '''Fetch a URL, optionally caching for a specified time.
 
     Args:
-      url: The URL to retrieve
-      post_data: 
-        A dict of (str, unicode) key/value pairs.  If set, POST will be used.
+      url:
+        The URL to retrieve
+      post_data:
+        A dict of (str, unicode) key/value pairs.
+        If set, POST will be used.
       parameters:
-        A dict whose key/value pairs should encoded and added 
-        to the query string. [OPTIONAL]
-      no_cache: If true, overrides the cache on the current request
+        A dict whose key/value pairs should encoded and added
+        to the query string. [optional]
+      no_cache:
+        If true, overrides the cache on the current request
+      use_gzip_compression:
+        If True, tells the server to gzip-compress the response.
+        It does not apply to POST requests.
+        Defaults to None, which will get the value to use from
+        the instance variable self._use_gzip [optional]
 
     Returns:
       A string containing the body of the response.
@@ -2389,11 +2417,21 @@ class Api(object):
     # Get a url opener that can handle basic auth
     opener = self._GetOpener(url, username=self._username, password=self._password)
 
+    if use_gzip_compression is None:
+      use_gzip = self._use_gzip
+    else:
+      use_gzip = use_gzip_compression
+      
+    # Set up compression
+    if use_gzip and not post_data:
+      opener.addheaders.append(('Accept-Encoding', 'gzip'))
+
     encoded_post_data = self._EncodePostData(post_data)
 
     # Open and return the URL immediately if we're not going to cache
     if encoded_post_data or no_cache or not self._cache or not self._cache_timeout:
-      url_data = opener.open(url, encoded_post_data).read()
+      response = opener.open(url, encoded_post_data)
+      url_data = self._DecompressGzippedResponse(response)
       opener.close()
     else:
       # Unique keys are a combination of the url and the username
@@ -2407,7 +2445,8 @@ class Api(object):
 
       # If the cached version is outdated then fetch another and store it
       if not last_cached or time.time() >= last_cached + self._cache_timeout:
-        url_data = opener.open(url, encoded_post_data).read()
+        response = opener.open(url, encoded_post_data)
+        url_data = self._DecompressGzippedResponse(response)
         opener.close()
         self._cache.Set(key, url_data)
       else:

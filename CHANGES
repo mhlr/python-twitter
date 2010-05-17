@@ -6,9 +6,16 @@
 
  Multiple typo, indent and whitespace tweaks
 
- Issue 60  http://code.google.com/p/python-twitter/issues/detail?id=60
+ Issue 60 http://code.google.com/p/python-twitter/issues/detail?id=60
  Pulled out new GetFavorites and GetMentions methods from the patch
  submitted by joegermuska
+
+ Issue 62 http://code.google.com/p/python-twitter/issues/detail?id=62
+ Applied patch from lukev123 that adds gzip compression to the GET
+ requests sent to Twitter. The patch was modified to default gzip to
+ False and to allow the twitter.API class instantiation to set the
+ value to True.  This was done to not change current default
+ behaviour radically.
 
 2010-05-16
 

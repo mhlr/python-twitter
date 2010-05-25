@@ -1,3 +1,8 @@
+2010-05-24
+
+ r0.7 branch created to store any pre-oauth changes - this should be
+ the last bit of code before the oauth storm hits.
+
 2010-05-17
 
  Issue 50 http://code.google.com/p/python-twitter/issues/detail?id=50

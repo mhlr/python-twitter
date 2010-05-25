@@ -17,7 +17,7 @@
 '''A library that provides a python interface to the Twitter API'''
 
 __author__ = 'dewitt@google.com'
-__version__ = '0.7-devel'
+__version__ = '0.7rc1'
 
 
 import base64

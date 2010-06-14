@@ -1,3 +1,31 @@
+2010-06-13
+
+ Applied changeset from nicdumz repo nicdumz-cleaner-python-twitter
+   r=07df3feee06c8d0f9961596e5fceae9e74493d25
+   datetime is required for MaximumHitFrequency
+
+ Applied changeset from nicdumz repo nicdumz-cleaner-python-twitter
+   r=dd669dff32d101856ed6e50fe8bd938640b04d77
+   update source URLs in README
+
+ Applied changeset from nicdumz repo nicdumz-cleaner-python-twitter
+   r=8f0796d7fdcea17f4162aeb22d3c36cb603088c7
+   adjust tests to reflect http://twitter.com -> https://twitter.com change
+
+ Applied changeset from nicdumz repo nicdumz-cleaner-python-twitter
+   r=3c05b8ebe59eca226d9eaef2760cecca9d50944a
+   tests: add .info() method to objects returned by our Mockup handler
+   This is required to completely mimick urllib, and have successful
+   response.headers attribute accesses.
+
+ Applied partial patch for Issue 113 
+ http://code.google.com/p/python-twitter/issues/detail?id=113
+
+   The partial bit means we changed the parameter from "page" to "cursor"
+   so the call would work.  What was left out was a more direct way
+   to return the cursor value *after* the call and also in the patch
+   they also changed the method to return an iterator.
+
 2010-05-17
 
  Issue 50 http://code.google.com/p/python-twitter/issues/detail?id=50

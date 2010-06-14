@@ -22,6 +22,7 @@ __version__ = '0.7-devel'
 
 import base64
 import calendar
+import datetime
 import httplib
 import os
 import rfc822
@@ -1767,7 +1768,7 @@ class Api(object):
     self._CheckForTwitterError(data)
     return [Status.NewFromJsonDict(x) for x in data]
 
-  def GetFriends(self, user=None, page=None):
+  def GetFriends(self, user=None, cursor=-1):
     '''Fetch the sequence of twitter.User instances, one for each friend.
 
     Args:
@@ -1786,27 +1787,19 @@ class Api(object):
     else:
       url = '%s/statuses/friends.json' % self.base_url
     parameters = {}
-    if page:
-      parameters['page'] = page
+    parameters['cursor'] = cursor
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return [User.NewFromJsonDict(x) for x in data]
 
-  def GetFriendIDs(self, user=None, page=None):
+  def GetFriendIDs(self, user=None, cursor=-1):
       '''Returns a list of twitter user id's for every person
       the specified user is following.
 
       Args:
         user:
           The id or screen_name of the user to retrieve the id list for
-          [optional]
-        page:
-          Specifies the page number of the results beginning at 1.
-          A single page contains 5000 ids. This is recommended for users
-          with large id lists. If not provided all id's are returned. 
-          (Please note that the result set isn't guaranteed to be 5000 
-          every time as suspended users will be filtered.)
           [optional]
 
       Returns:
@@ -1819,12 +1812,29 @@ class Api(object):
       else:
           url = '%s/friends/ids.json' % self.base_url
       parameters = {}
-      if page:
-          parameters['page'] = page
+      parameters['cursor'] = cursor
       json = self._FetchUrl(url, parameters=parameters)
       data = simplejson.loads(json)
       self._CheckForTwitterError(data)
       return data
+
+  def GetFollowerIDs(self, userid=None, cursor=-1):
+    '''Fetch the sequence of twitter.User instances, one for each follower
+
+    The twitter.Api instance must be authenticated.
+
+    Returns:
+      A sequence of twitter.User instances, one for each follower
+    '''
+    url = 'http://twitter.com/followers/ids.json'
+    parameters = {}
+    parameters['cursor'] = cursor
+    if userid:
+      parameters['user_id'] = userid
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    return data
 
   def GetFollowers(self, page=None):
     '''Fetch the sequence of twitter.User instances, one for each follower

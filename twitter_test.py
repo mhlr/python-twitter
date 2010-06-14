@@ -24,12 +24,13 @@ import simplejson
 import time
 import calendar
 import unittest
+import urllib
 
 import twitter
 
 class StatusTest(unittest.TestCase):
 
-  SAMPLE_JSON = '''{"created_at": "Fri Jan 26 23:17:14 +0000 2007", "id": 4391023, "text": "A l\u00e9gp\u00e1rn\u00e1s haj\u00f3m tele van angoln\u00e1kkal.", "user": {"description": "Canvas. JC Penny. Three ninety-eight.", "id": 718443, "location": "Okinawa, Japan", "name": "Kesuke Miyagi", "profile_image_url": "http://twitter.com/system/user/profile_image/718443/normal/kesuke.png", "screen_name": "kesuke", "url": "http://twitter.com/kesuke"}}'''
+  SAMPLE_JSON = '''{"created_at": "Fri Jan 26 23:17:14 +0000 2007", "id": 4391023, "text": "A l\u00e9gp\u00e1rn\u00e1s haj\u00f3m tele van angoln\u00e1kkal.", "user": {"description": "Canvas. JC Penny. Three ninety-eight.", "id": 718443, "location": "Okinawa, Japan", "name": "Kesuke Miyagi", "profile_image_url": "https://twitter.com/system/user/profile_image/718443/normal/kesuke.png", "screen_name": "kesuke", "url": "https://twitter.com/kesuke"}}'''
 
   def _GetSampleUser(self):
     return twitter.User(id=718443,
@@ -37,8 +38,8 @@ class StatusTest(unittest.TestCase):
                         screen_name='kesuke',
                         description=u'Canvas. JC Penny. Three ninety-eight.',
                         location='Okinawa, Japan',
-                        url='http://twitter.com/kesuke',
-                        profile_image_url='http://twitter.com/system/user/pro'
+                        url='https://twitter.com/kesuke',
+                        profile_image_url='https://twitter.com/system/user/pro'
                                           'file_image/718443/normal/kesuke.pn'
                                           'g')
 
@@ -158,7 +159,7 @@ class StatusTest(unittest.TestCase):
 
 class UserTest(unittest.TestCase):
 
-  SAMPLE_JSON = '''{"description": "Indeterminate things", "id": 673483, "location": "San Francisco, CA", "name": "DeWitt", "profile_image_url": "http://twitter.com/system/user/profile_image/673483/normal/me.jpg", "screen_name": "dewitt", "status": {"created_at": "Fri Jan 26 17:28:19 +0000 2007", "id": 4212713, "text": "\\"Select all\\" and archive your Gmail inbox.  The page loads so much faster!"}, "url": "http://unto.net/"}'''
+  SAMPLE_JSON = '''{"description": "Indeterminate things", "id": 673483, "location": "San Francisco, CA", "name": "DeWitt", "profile_image_url": "https://twitter.com/system/user/profile_image/673483/normal/me.jpg", "screen_name": "dewitt", "status": {"created_at": "Fri Jan 26 17:28:19 +0000 2007", "id": 4212713, "text": "\\"Select all\\" and archive your Gmail inbox.  The page loads so much faster!"}, "url": "http://unto.net/"}'''
 
   def _GetSampleStatus(self):
     return twitter.Status(created_at='Fri Jan 26 17:28:19 +0000 2007',
@@ -173,7 +174,7 @@ class UserTest(unittest.TestCase):
                         description=u'Indeterminate things',
                         location='San Francisco, CA',
                         url='http://unto.net/',
-                        profile_image_url='http://twitter.com/system/user/prof'
+                        profile_image_url='https://twitter.com/system/user/prof'
                                           'ile_image/673483/normal/me.jpg',
                         status=self._GetSampleStatus())
 
@@ -185,8 +186,8 @@ class UserTest(unittest.TestCase):
                         name='DeWitt',
                         screen_name='dewitt',
                         description=u'Indeterminate things',
-                        url='http://twitter.com/dewitt',
-                        profile_image_url='http://twitter.com/system/user/prof'
+                        url='https://twitter.com/dewitt',
+                        profile_image_url='https://twitter.com/system/user/prof'
                                           'ile_image/673483/normal/me.jpg',
                         status=self._GetSampleStatus())
 
@@ -203,9 +204,9 @@ class UserTest(unittest.TestCase):
     self.assertEqual('Indeterminate things', user.GetDescription())
     user.SetLocation('San Francisco, CA')
     self.assertEqual('San Francisco, CA', user.GetLocation())
-    user.SetProfileImageUrl('http://twitter.com/system/user/profile_im'
+    user.SetProfileImageUrl('https://twitter.com/system/user/profile_im'
                             'age/673483/normal/me.jpg')
-    self.assertEqual('http://twitter.com/system/user/profile_image/673'
+    self.assertEqual('https://twitter.com/system/user/profile_image/673'
                      '483/normal/me.jpg', user.GetProfileImageUrl())
     user.SetStatus(self._GetSampleStatus())
     self.assertEqual(4212713, user.GetStatus().id)
@@ -223,9 +224,9 @@ class UserTest(unittest.TestCase):
     self.assertEqual('Indeterminate things', user.description)
     user.location = 'San Francisco, CA'
     self.assertEqual('San Francisco, CA', user.location)
-    user.profile_image_url = 'http://twitter.com/system/user/profile_i' \
+    user.profile_image_url = 'https://twitter.com/system/user/profile_i' \
                              'mage/673483/normal/me.jpg'
-    self.assertEqual('http://twitter.com/system/user/profile_image/6734'
+    self.assertEqual('https://twitter.com/system/user/profile_image/6734'
                      '83/normal/me.jpg', user.profile_image_url)
     self.status = self._GetSampleStatus()
     self.assertEqual(4212713, self.status.id)
@@ -244,7 +245,7 @@ class UserTest(unittest.TestCase):
     self.assertEqual('dewitt', data['screen_name'])
     self.assertEqual('Indeterminate things', data['description'])
     self.assertEqual('San Francisco, CA', data['location'])
-    self.assertEqual('http://twitter.com/system/user/profile_image/6734'
+    self.assertEqual('https://twitter.com/system/user/profile_image/6734'
                      '83/normal/me.jpg', data['profile_image_url'])
     self.assertEqual('http://unto.net/', data['url'])
     self.assertEqual(4212713, data['status']['id'])
@@ -257,7 +258,7 @@ class UserTest(unittest.TestCase):
     user.screen_name = 'dewitt'
     user.description = 'Indeterminate things'
     user.location = 'San Francisco, CA'
-    user.profile_image_url = 'http://twitter.com/system/user/profile_image/67' \
+    user.profile_image_url = 'https://twitter.com/system/user/profile_image/67' \
                              '3483/normal/me.jpg'
     user.url = 'http://unto.net/'
     user.status = self._GetSampleStatus()
@@ -320,7 +321,7 @@ class ApiTest(unittest.TestCase):
 
   def testTwitterError(self):
     '''Test that twitter responses containing an error message are wrapped.'''
-    self._AddHandler('http://twitter.com/statuses/public_timeline.json',
+    self._AddHandler('https://twitter.com/statuses/public_timeline.json',
                      curry(self._OpenTestData, 'public_timeline_error.json'))
     # Manually try/catch so we can check the exception's value
     try:
@@ -333,7 +334,7 @@ class ApiTest(unittest.TestCase):
 
   def testGetPublicTimeline(self):
     '''Test the twitter.Api GetPublicTimeline method'''
-    self._AddHandler('http://twitter.com/statuses/public_timeline.json?since_id=12345',
+    self._AddHandler('https://twitter.com/statuses/public_timeline.json?since_id=12345',
                      curry(self._OpenTestData, 'public_timeline.json'))
     statuses = self._api.GetPublicTimeline(since_id=12345)
     # This is rather arbitrary, but spot checking is better than nothing
@@ -342,7 +343,7 @@ class ApiTest(unittest.TestCase):
 
   def testGetUserTimeline(self):
     '''Test the twitter.Api GetUserTimeline method'''
-    self._AddHandler('http://twitter.com/statuses/user_timeline/kesuke.json?count=1',
+    self._AddHandler('https://twitter.com/statuses/user_timeline/kesuke.json?count=1',
                      curry(self._OpenTestData, 'user_timeline-kesuke.json'))
     statuses = self._api.GetUserTimeline('kesuke', count=1)
     # This is rather arbitrary, but spot checking is better than nothing
@@ -351,7 +352,7 @@ class ApiTest(unittest.TestCase):
 
   def testGetFriendsTimeline(self):
     '''Test the twitter.Api GetFriendsTimeline method'''
-    self._AddHandler('http://twitter.com/statuses/friends_timeline/kesuke.json',
+    self._AddHandler('https://twitter.com/statuses/friends_timeline/kesuke.json',
                      curry(self._OpenTestData, 'friends_timeline-kesuke.json'))
     statuses = self._api.GetFriendsTimeline('kesuke')
     # This is rather arbitrary, but spot checking is better than nothing
@@ -360,7 +361,7 @@ class ApiTest(unittest.TestCase):
 
   def testGetStatus(self):
     '''Test the twitter.Api GetStatus method'''
-    self._AddHandler('http://twitter.com/statuses/show/89512102.json',
+    self._AddHandler('https://twitter.com/statuses/show/89512102.json',
                      curry(self._OpenTestData, 'show-89512102.json'))
     status = self._api.GetStatus(89512102)
     self.assertEqual(89512102, status.id)
@@ -368,14 +369,14 @@ class ApiTest(unittest.TestCase):
 
   def testDestroyStatus(self):
     '''Test the twitter.Api DestroyStatus method'''
-    self._AddHandler('http://twitter.com/statuses/destroy/103208352.json',
+    self._AddHandler('https://twitter.com/statuses/destroy/103208352.json',
                      curry(self._OpenTestData, 'status-destroy.json'))
     status = self._api.DestroyStatus(103208352)
     self.assertEqual(103208352, status.id)
 
   def testPostUpdate(self):
     '''Test the twitter.Api PostUpdate method'''
-    self._AddHandler('http://twitter.com/statuses/update.json',
+    self._AddHandler('https://twitter.com/statuses/update.json',
                      curry(self._OpenTestData, 'update.json'))
     status = self._api.PostUpdate(u'Моё судно на воздушной подушке полно угрей')
     # This is rather arbitrary, but spot checking is better than nothing
@@ -383,14 +384,14 @@ class ApiTest(unittest.TestCase):
 
   def testGetReplies(self):
     '''Test the twitter.Api GetReplies method'''
-    self._AddHandler('http://twitter.com/statuses/replies.json?page=1',
+    self._AddHandler('https://twitter.com/statuses/replies.json?page=1',
                      curry(self._OpenTestData, 'replies.json'))
     statuses = self._api.GetReplies(page=1)
     self.assertEqual(36657062, statuses[0].id)
 
   def testGetFriends(self):
     '''Test the twitter.Api GetFriends method'''
-    self._AddHandler('http://twitter.com/statuses/friends.json?page=1',
+    self._AddHandler('https://twitter.com/statuses/friends.json?page=1',
                      curry(self._OpenTestData, 'friends.json'))
     users = self._api.GetFriends(page=1)
     buzz = [u.status for u in users if u.screen_name == 'buzz']
@@ -398,7 +399,7 @@ class ApiTest(unittest.TestCase):
 
   def testGetFollowers(self):
     '''Test the twitter.Api GetFollowers method'''
-    self._AddHandler('http://twitter.com/statuses/followers.json?page=1',
+    self._AddHandler('https://twitter.com/statuses/followers.json?page=1',
                      curry(self._OpenTestData, 'followers.json'))
     users = self._api.GetFollowers(page=1)
     # This is rather arbitrary, but spot checking is better than nothing
@@ -407,7 +408,7 @@ class ApiTest(unittest.TestCase):
 
   def testGetFeatured(self):
     '''Test the twitter.Api GetFeatured method'''
-    self._AddHandler('http://twitter.com/statuses/featured.json',
+    self._AddHandler('https://twitter.com/statuses/featured.json',
                      curry(self._OpenTestData, 'featured.json'))
     users = self._api.GetFeatured()
     # This is rather arbitrary, but spot checking is better than nothing
@@ -416,14 +417,14 @@ class ApiTest(unittest.TestCase):
 
   def testGetDirectMessages(self):
     '''Test the twitter.Api GetDirectMessages method'''
-    self._AddHandler('http://twitter.com/direct_messages.json?page=1',
+    self._AddHandler('https://twitter.com/direct_messages.json?page=1',
                      curry(self._OpenTestData, 'direct_messages.json'))
     statuses = self._api.GetDirectMessages(page=1)
     self.assertEqual(u'A légpárnás hajóm tele van angolnákkal.', statuses[0].text)
 
   def testPostDirectMessage(self):
     '''Test the twitter.Api PostDirectMessage method'''
-    self._AddHandler('http://twitter.com/direct_messages/new.json',
+    self._AddHandler('https://twitter.com/direct_messages/new.json',
                      curry(self._OpenTestData, 'direct_messages-new.json'))
     status = self._api.PostDirectMessage('test', u'Моё судно на воздушной подушке полно угрей')
     # This is rather arbitrary, but spot checking is better than nothing
@@ -431,7 +432,7 @@ class ApiTest(unittest.TestCase):
 
   def testDestroyDirectMessage(self):
     '''Test the twitter.Api DestroyDirectMessage method'''
-    self._AddHandler('http://twitter.com/direct_messages/destroy/3496342.json',
+    self._AddHandler('https://twitter.com/direct_messages/destroy/3496342.json',
                      curry(self._OpenTestData, 'direct_message-destroy.json'))
     status = self._api.DestroyDirectMessage(3496342)
     # This is rather arbitrary, but spot checking is better than nothing
@@ -439,7 +440,7 @@ class ApiTest(unittest.TestCase):
 
   def testCreateFriendship(self):
     '''Test the twitter.Api CreateFriendship method'''
-    self._AddHandler('http://twitter.com/friendships/create/dewitt.json',
+    self._AddHandler('https://twitter.com/friendships/create/dewitt.json',
                      curry(self._OpenTestData, 'friendship-create.json'))
     user = self._api.CreateFriendship('dewitt')
     # This is rather arbitrary, but spot checking is better than nothing
@@ -447,7 +448,7 @@ class ApiTest(unittest.TestCase):
 
   def testDestroyFriendship(self):
     '''Test the twitter.Api DestroyFriendship method'''
-    self._AddHandler('http://twitter.com/friendships/destroy/dewitt.json',
+    self._AddHandler('https://twitter.com/friendships/destroy/dewitt.json',
                      curry(self._OpenTestData, 'friendship-destroy.json'))
     user = self._api.DestroyFriendship('dewitt')
     # This is rather arbitrary, but spot checking is better than nothing
@@ -455,7 +456,7 @@ class ApiTest(unittest.TestCase):
 
   def testGetUser(self):
     '''Test the twitter.Api GetUser method'''
-    self._AddHandler('http://twitter.com/users/show/dewitt.json',
+    self._AddHandler('https://twitter.com/users/show/dewitt.json',
                      curry(self._OpenTestData, 'show-dewitt.json'))
     user = self._api.GetUser('dewitt')
     self.assertEqual('dewitt', user.screen_name)
@@ -470,7 +471,10 @@ class ApiTest(unittest.TestCase):
     return os.path.join(test_data_dir, filename)
 
   def _OpenTestData(self, filename):
-    return open(self._GetTestDataPath(filename))
+    f = open(self._GetTestDataPath(filename))
+    # make sure that the returned object contains an .info() method:
+    # headers are set to {}
+    return urllib.addinfo(f, {})
 
 class MockUrllib(object):
   '''A mock replacement for urllib that hardcodes specific responses.'''

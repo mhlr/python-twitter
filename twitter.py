@@ -1,6 +1,6 @@
 #!/usr/bin/python2.4
 #
-# Copyright 2007 Google Inc. All Rights Reserved.
+# Copyright 2007 The Python-Twitter Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 '''A library that provides a python interface to the Twitter API'''
 
-__author__ = 'dewitt@google.com'
+__author__ = 'python-twitter@googlegroups.com'
 __version__ = '0.7-devel'
 
 

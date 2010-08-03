@@ -1,7 +1,7 @@
 #!/usr/bin/python2.4
 # -*- coding: utf-8 -*-#
 #
-# Copyright 2007 Google Inc. All Rights Reserved.
+# Copyright 2007 The Python-Twitter Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 '''Unit tests for the twitter.py library'''
 
-__author__ = 'dewitt@google.com'
+__author__ = 'python-twitter@googlegroups.com'
 
 import os
 import simplejson

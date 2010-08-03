@@ -2,7 +2,7 @@
 
 _A python wrapper around the Twitter API_
 
-Author: `DeWitt Clinton <dewitt@google.com>`
+Author: `The Python-Twitter Developers <python-twitter@googlegroups.com>`
 
 ==Introduction==
 
@@ -170,7 +170,7 @@ Dyson, Robert Laquey, and the rest of the python-twitter mailing list.
 ==License==
 
 {{{
-  Copyright 2007 Google Inc. All Rights Reserved.
+  Copyright 2007 The Python-Twitter Developers
   
   Licensed under the Apache License, Version 2.0 (the 'License');
   you may not use this file except in compliance with the License.

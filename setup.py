@@ -1,6 +1,6 @@
 #!/usr/bin/python2.4
 #
-# Copyright 2007 Google Inc. All Rights Reserved.
+# Copyright 2007 The Python-Twitter Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 '''The setup and build script for the python-twitter library.'''
 
-__author__ = 'dewitt@google.com'
+__author__ = 'python-twitter@googlegroups.com'
 __version__ = '0.7-devel'
 
 
@@ -25,8 +25,8 @@ METADATA = dict(
   name = "python-twitter",
   version = __version__,
   py_modules = ['twitter'],
-  author='DeWitt Clinton',
-  author_email='dewitt@google.com',
+  author='The Python-Twitter Developers',
+  author_email='python-twitter@googlegroups.com',
   description='A python wrapper around the Twitter API',
   license='Apache License 2.0',
   url='http://code.google.com/p/python-twitter/',

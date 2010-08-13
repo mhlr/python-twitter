@@ -1,5 +1,25 @@
+2010-08-12
+
+ Updated code to use python-oauth2 library for authentication.
+ Twitter has set a deadline, 2010-08-16 as of this change, for
+ the switch from Basic to oAuth.
+
+ The oAuth integration was inspired by the work done by
+ Hameedullah Khan and others.
+
+ The change to using python-oauth2 library was done purely to
+ align python-twitter with an oauth library that was maintained
+ and had tests to try and minimize grief moving forward.
+
+ Slipped into GetFriendsTimeline() a new parameter, retweets, to
+ allow the call to pull from the "friends_timeline" or the
+ "home_timeline".
+
+ Fixed some typos and white-space issues and also updated the
+ README to point to the new Twitter Dev site.
+
 2010-08-02
- 
+
  Updated copyright information.
 
 2010-06-13

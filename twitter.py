@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''A library that provides a python interface to the Twitter API'''
+'''A library that provides a Python interface to the Twitter API'''
 
 __author__ = 'python-twitter@googlegroups.com'
-__version__ = '0.7-devel'
+__version__ = '0.8-devel'
 
 
 import base64
@@ -37,6 +37,8 @@ import urlparse
 import gzip
 import StringIO
 
+import oauth2 as oauth
+
 try:
   from hashlib import md5
 except ImportError:
@@ -48,10 +50,15 @@ CHARACTER_LIMIT = 140
 # A singleton representing a lazily instantiated FileCache.
 DEFAULT_CACHE = object()
 
+REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
+ACCESS_TOKEN_URL  = 'https://api.twitter.com/oauth/access_token'
+AUTHORIZATION_URL = 'https://api.twitter.com/oauth/authorize'
+SIGNIN_URL        = 'https://api.twitter.com/oauth/authenticate'
+
 
 class TwitterError(Exception):
   '''Base class for Twitter errors'''
-  
+
   @property
   def message(self):
     '''Returns the first argument used to construct this error.'''
@@ -1275,9 +1282,11 @@ class Api(object):
       >>> print [s.text for s in statuses]
 
     To use authentication, instantiate the twitter.Api class with a
-    username and password:
+    username, password and the oAuth key and secret:
 
-      >>> api = twitter.Api(username='twitter user', password='twitter pass')
+      >>> api = twitter.Api(username='twitter user', password='twitter pass',
+                            access_token_key='the_key_given',
+                            access_token_secret='the_key_secret')
 
     To fetch your friends (after being authenticated):
 
@@ -1313,12 +1322,13 @@ class Api(object):
   '''
 
   DEFAULT_CACHE_TIMEOUT = 60 # cache for 1 minute
-
   _API_REALM = 'Twitter API'
 
   def __init__(self,
                username=None,
                password=None,
+               access_token_key=None,
+               access_token_secret=None,
                input_encoding=None,
                request_headers=None,
                cache=DEFAULT_CACHE,
@@ -1332,6 +1342,12 @@ class Api(object):
         The username of the twitter account.  [optional]
       password:
         The password for the twitter account. [optional]
+      access_token_key:
+        The oAuth access token key value you retrieved
+        from running get_access_token.py. [optional]
+      access_token_secret:
+        The oAuth access token's secret, also retrieved
+        from the get_access_token.py run. [optional]
       input_encoding:
         The encoding used to encode input strings. [optional]
       request_header:
@@ -1350,22 +1366,76 @@ class Api(object):
         made to Twitter.  Defaults to False. [optional]
     '''
     self.SetCache(cache)
-    self._urllib = urllib2
-    self._cache_timeout = Api.DEFAULT_CACHE_TIMEOUT
+    self._urllib         = urllib2
+    self._cache_timeout  = Api.DEFAULT_CACHE_TIMEOUT
+    self._input_encoding = input_encoding
+    self._use_gzip       = use_gzip_compression
+    self._oauth_consumer = None
+
     self._InitializeRequestHeaders(request_headers)
     self._InitializeUserAgent()
     self._InitializeDefaultParameters()
-    self._input_encoding = input_encoding
-    self._use_gzip = use_gzip_compression
-    self.SetCredentials(username, password)
+
     if base_url is None:
-      self.base_url = 'https://twitter.com'
+      self.base_url = 'https://api.twitter.com/1'
     else:
       self.base_url = base_url
 
+    if username is not None and (access_token_key is None or 
+                                 access_token_secret is None):
+      print >> sys.stderr, 'Twitter now requires an oAuth Access Token for API calls.'
+      print >> sys.stderr, 'If your using this library from a command line utility, please'
+      print >> sys.stderr, 'run the the included get_access_token.py tool to generate one.'
+
+      raise TwitterError('Twitter requires oAuth Access Token for all API access')
+
+    self.SetCredentials(username, password, access_token_key, access_token_secret)
+
+  def SetCredentials(self,
+                     username,
+                     password,
+                     access_token_key=None,
+                     access_token_secret=None):
+    '''Set the username and password for this instance
+
+    Args:
+      username:
+        The username of the twitter account.
+      password:
+        The password for the twitter account.
+      access_token_key:
+        The oAuth access token key value you retrieved
+        from running get_access_token.py.
+      access_token_secret:
+        The oAuth access token's secret, also retrieved
+        from the get_access_token.py run.
+    '''
+    self._username            = username
+    self._password            = password
+    self._access_token_key    = access_token_key
+    self._access_token_secret = access_token_secret
+    self._oauth_consumer      = None
+
+    if username is not None and password is not None and \
+       access_token_key is not None and access_token_secret is not None:
+      self._signature_method_plaintext = oauth.SignatureMethod_PLAINTEXT()
+      self._signature_method_hmac_sha1 = oauth.SignatureMethod_HMAC_SHA1()
+
+      self._oauth_token    = oauth.Token(key=access_token_key, secret=access_token_secret)
+      self._oauth_consumer = oauth.Consumer(key=username, secret=password)
+
+  def ClearCredentials(self):
+    '''Clear the any credentials for this instance
+    '''
+    self._username            = None
+    self._password            = None
+    self._access_token_key    = None
+    self._access_token_secret = None
+    self._oauth_consumer      = None
+
   def GetPublicTimeline(self,
                         since_id=None):
-    '''Fetch the sequnce of public twitter.Status message for all users.
+    '''Fetch the sequence of public twitter.Status message for all users.
 
     Args:
       since_id:
@@ -1496,7 +1566,8 @@ class Api(object):
                          user=None,
                          count=None,
                          since=None,
-                         since_id=None):
+                         since_id=None,
+                         retweets=False):
     '''Fetch the sequence of twitter.Status messages for a user's friends
 
     The twitter.Api instance must be authenticated if the user is private.
@@ -1519,12 +1590,17 @@ class Api(object):
     Returns:
       A sequence of twitter.Status instances, one for each message
     '''
-    if not user and not self._username:
+    if not user and not self._oauth_consumer:
       raise TwitterError("User must be specified if API is not authenticated.")
-    if user:
-      url = '%s/statuses/friends_timeline/%s.json' % (self.base_url, user)
+    url = '%s/statuses' % self.base_url
+    if retweets:
+      src = 'home_timeline'
     else:
-      url = '%s/statuses/friends_timeline.json' % self.base_url
+      src = 'friends_timeline'
+    if user:
+      url = '%s/%s/%s.json' % (url, src, user)
+    else:
+      url = '%s/%s.json' % (url, src)
     parameters = {}
     if count is not None:
       try:
@@ -1591,7 +1667,7 @@ class Api(object):
     elif screen_name:
       url = ('%s/statuses/user_timeline.json?screen_name=%s' % (self.base_url,
              screen_name))
-    elif not self._username:
+    elif not self._oauth_consumer:
       raise TwitterError("User must be specified if API is not authenticated.")
     else:
       url = '%s/statuses/user_timeline.json' % self.base_url
@@ -1688,7 +1764,7 @@ class Api(object):
     Returns:
       A twitter.Status instance representing the message posted.
     '''
-    if not self._username:
+    if not self._oauth_consumer:
       raise TwitterError("The twitter.Api instance must be authenticated.")
 
     url = '%s/statuses/update.json' % self.base_url
@@ -1754,7 +1830,7 @@ class Api(object):
       A sequence of twitter.Status instances, one for each reply to the user.
     '''
     url = '%s/statuses/replies.json' % self.base_url
-    if not self._username:
+    if not self._oauth_consumer:
       raise TwitterError("The twitter.Api instance must be authenticated.")
     parameters = {}
     if since:
@@ -1780,7 +1856,7 @@ class Api(object):
     Returns:
       A sequence of twitter.User instances, one for each friend
     '''
-    if not user and not self._username:
+    if not user and not self._oauth_consumer:
       raise TwitterError("twitter.Api instance must be authenticated")
     if user:
       url = '%s/statuses/friends/%s.json' % (self.base_url, user)
@@ -1805,7 +1881,7 @@ class Api(object):
       Returns:
         A list of integers, one for each user id.
       '''
-      if not user and not self._username:
+      if not user and not self._oauth_consumer:
           raise TwitterError("twitter.Api instance must be authenticated")
       if user:
           url = '%s/friends/ids/%s.json' % (self.base_url, user)
@@ -1844,7 +1920,7 @@ class Api(object):
     Returns:
       A sequence of twitter.User instances, one for each follower
     '''
-    if not self._username:
+    if not self._oauth_consumer:
       raise TwitterError("twitter.Api instance must be authenticated")
     url = '%s/statuses/followers.json' % self.base_url
     parameters = {}
@@ -1903,7 +1979,7 @@ class Api(object):
       A sequence of twitter.DirectMessage instances
     '''
     url = '%s/direct_messages.json' % self.base_url
-    if not self._username:
+    if not self._oauth_consumer:
       raise TwitterError("The twitter.Api instance must be authenticated.")
     parameters = {}
     if since:
@@ -1929,7 +2005,7 @@ class Api(object):
     Returns:
       A twitter.DirectMessage instance representing the message posted
     '''
-    if not self._username:
+    if not self._oauth_consumer:
       raise TwitterError("The twitter.Api instance must be authenticated.")
     url = '%s/direct_messages/new.json' % self.base_url
     data = {'text': text, 'user': user}
@@ -2045,7 +2121,7 @@ class Api(object):
 
     if user:
       url = '%s/favorites/%s.json' % (self.base_url, user)
-    elif not user and not self._username:
+    elif not user and not self._oauth_consumer:
       raise TwitterError("User must be specified if API is not authenticated.")
     else:
       url = '%s/favorites.json' % self.base_url
@@ -2083,7 +2159,7 @@ class Api(object):
 
     url = '%s/statuses/mentions.json' % self.base_url
 
-    if not self._username:
+    if not self._oauth_consumer:
       raise TwitterError("The twitter.Api instance must be authenticated.")
 
     parameters = {}
@@ -2123,7 +2199,7 @@ class Api(object):
       A twitter.User instance representing that user if the
       credentials are valid, None otherwise.
     '''
-    if not self._username:
+    if not self._oauth_consumer:
       raise TwitterError("Api instance must first be given user credentials.")
     url = '%s/account/verify_credentials.json' % self.base_url
     try:
@@ -2136,22 +2212,6 @@ class Api(object):
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return User.NewFromJsonDict(data)
-
-  def SetCredentials(self, username, password):
-    '''Set the username and password for this instance
-
-    Args:
-      username: The twitter username.
-      password: The twitter password.
-    '''
-    self._username = username
-    self._password = password
-
-  def ClearCredentials(self):
-    '''Clear the username and password for this instance
-    '''
-    self._username = None
-    self._password = None
 
   def SetCache(self, cache):
     '''Override the default cache.  Set to None to prevent caching.
@@ -2303,15 +2363,6 @@ class Api(object):
   def _InitializeDefaultParameters(self):
     self._default_params = {}
 
-  def _AddAuthorizationHeader(self, username, password):
-    if username and password:
-      basic_auth = base64.encodestring('%s:%s' % (username, password))[:-1]
-      self._request_headers['Authorization'] = 'Basic %s' % basic_auth
-
-  def _RemoveAuthorizationHeader(self):
-    if self._request_headers and 'Authorization' in self._request_headers:
-      del self._request_headers['Authorization']
-
   def _DecompressGzippedResponse(self, response):
     raw_data = response.read()
     if response.headers.get('content-encoding', None) == 'gzip':
@@ -2319,18 +2370,6 @@ class Api(object):
     else:
       url_data = raw_data
     return url_data
-
-  def _GetOpener(self, url, username=None, password=None):
-    if username and password:
-      self._AddAuthorizationHeader(username, password)
-      handler = self._urllib.HTTPBasicAuthHandler()
-      (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
-      handler.add_password(Api._API_REALM, netloc, username, password)
-      opener = self._urllib.build_opener(handler)
-    else:
-      opener = self._urllib.build_opener()
-    opener.addheaders = self._request_headers.items()
-    return opener
 
   def _Encode(self, s):
     if self._input_encoding:
@@ -2421,22 +2460,58 @@ class Api(object):
     if parameters:
       extra_params.update(parameters)
 
-    # Add key/value parameters to the query string of the url
-    url = self._BuildUrl(url, extra_params=extra_params)
+    if post_data:
+      http_method = "POST"
+    else:
+      http_method = "GET"
 
-    # Get a url opener that can handle basic auth
-    opener = self._GetOpener(url, username=self._username, password=self._password)
+    http_handler  = self._urllib.HTTPHandler(debuglevel=1)
+    https_handler = self._urllib.HTTPSHandler(debuglevel=1)
+
+    opener = self._urllib.OpenerDirector()
+    opener.add_handler(http_handler)
+    opener.add_handler(https_handler)
 
     if use_gzip_compression is None:
       use_gzip = self._use_gzip
     else:
       use_gzip = use_gzip_compression
-      
+
     # Set up compression
     if use_gzip and not post_data:
       opener.addheaders.append(('Accept-Encoding', 'gzip'))
 
-    encoded_post_data = self._EncodePostData(post_data)
+    if self._oauth_consumer is not None:
+      headers = {}
+
+      if post_data and http_method == "POST":
+          parameters = dict(parse_qsl(post_data))
+      elif http_method == "GET":
+          parsed     = urlparse.urlparse(url)
+          parameters = urlparse.parse_qs(parsed.query)
+      else:
+          parameters = None
+
+      req = oauth.Request.from_consumer_and_token(self._oauth_consumer,
+                                                  token=self._oauth_token,
+                                                  http_method=http_method,
+                                                  http_url=url, parameters=parameters)
+
+      req.sign_request(self._signature_method_hmac_sha1, self._oauth_consumer, self._oauth_token)
+
+      headers.update(req.to_header())
+
+      if http_method == "POST":
+        encoded_post_data = req.to_postdata()
+        headers['Content-Type'] = 'application/x-www-form-urlencoded'
+      else:
+        encoded_post_data = None
+
+      url = req.to_url()
+    else:
+      # Add key/value parameters to the query string of the url
+      url = self._BuildUrl(url, extra_params=extra_params)
+      encoded_post_data = self._EncodePostData(post_data)
 
     # Open and return the URL immediately if we're not going to cache
     if encoded_post_data or no_cache or not self._cache or not self._cache_timeout:
@@ -2444,7 +2519,7 @@ class Api(object):
       url_data = self._DecompressGzippedResponse(response)
       opener.close()
     else:
-      # Unique keys are a combination of the url and the username
+      # Unique keys are a combination of the url and the oAuth Consumer Key
       if self._username:
         key = self._username + ':' + url
       else:
@@ -2455,8 +2530,11 @@ class Api(object):
 
       # If the cached version is outdated then fetch another and store it
       if not last_cached or time.time() >= last_cached + self._cache_timeout:
-        response = opener.open(url, encoded_post_data)
-        url_data = self._DecompressGzippedResponse(response)
+        try:
+          response = opener.open(url, encoded_post_data)
+          url_data = self._DecompressGzippedResponse(response)
+        except urllib2.HTTPError, e:
+          print e
         opener.close()
         self._cache.Set(key, url_data)
       else:
@@ -2464,7 +2542,6 @@ class Api(object):
 
     # Always return the latest version
     return url_data
-
 
 class _FileCacheError(Exception):
   '''Base exception class for FileCache related errors'''

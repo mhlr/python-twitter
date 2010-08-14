@@ -2485,7 +2485,7 @@ class Api(object):
       headers = {}
 
       if post_data and http_method == "POST":
-          parameters = dict(urlparse.parse_qsl(post_data))
+          parameters = post_data.copy()
       elif http_method == "GET":
           parsed     = urlparse.urlparse(url)
           parameters = urlparse.parse_qs(parsed.query)

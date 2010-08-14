@@ -1,3 +1,13 @@
+2010-08-14
+
+ Fixed silly typo in _FetchUrl() when doing a POST
+ Thanks to Peter Sanchez for the find and fix!
+
+ Added some really basic text to the get_access_token.py
+ startup output that explains why, for now, you need to
+ visit Twitter and get an Application key/secret to use
+ this library
+
 2010-08-12
 
  Updated code to use python-oauth2 library for authentication.

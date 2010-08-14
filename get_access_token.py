@@ -29,9 +29,16 @@ SIGNIN_URL        = 'https://api.twitter.com/oauth/authenticate'
 app_consumer_key    = None
 app_consumer_secret = None
 
+
 if app_consumer_key is None or app_consumer_secret is None:
   print 'You need to edit this script and provide values for the'
   print 'app_consumer_key and also app_consumer_secret'
+  print 'The values you need come from Twitter - you need to register'
+  print 'as a developer your "application".  This is needed only until'
+  print 'Twitter finishes the idea they have of a way to allow open-source'
+  print 'based libraries to have a token that can be used to generate a'
+  print 'one-time use key that will allow the library to make the request'
+  print 'on your behalf.'
   sys.exit(1)
 
 signature_method_hmac_sha1 = oauth.SignatureMethod_HMAC_SHA1()

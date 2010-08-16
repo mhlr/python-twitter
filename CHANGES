@@ -1,3 +1,17 @@
+2010-08-15
+
+ Added more help text (I hope it helps) to the README
+ and also to get_access_token.py.
+
+ Added doctext notes to twitter.Api() parameter list
+ to explain more about oAuth.
+
+ Added import exception handling for parse_qs() and
+ parse_qsl() as it seems those funcitons moved between
+ 2.5 and 2.6 so the oAuth update broke the lib under
+ python2.5.  Thanks to Rich for the bug find (sorry
+ it had to be found the hard way!)
+
 2010-08-14
 
  Fixed silly typo in _FetchUrl() when doing a POST

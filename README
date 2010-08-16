@@ -100,11 +100,21 @@ To create an instance of the twitter.Api class:
 }}}
 
 To create an instance of the twitter.Api with login credentials (many API
-calls required the client to be authenticated):
+calls required the client to be authenticated.)
 
-  >>> api = twitter.Api(username='username', password='password',
+The python-twitter library now only supports oAuth authentication as the
+Twitter devs have indicated that oAuth is the only method that will be
+supported moving forward.
+
+The username parameter to twitter.Api() is named that because some calls
+still allow for un-authenticated access, and for them you can pass in a
+screen name or twitter ID.  This will probably change (again) soon.
+
+
+  >>> api = twitter.Api(username='consumer_key', password='consumer_secret',
                         access_token_key='access_token',
                         access_token_secret='access_token_secret')
+
 
 To fetch the most recently posted public Twitter status messages:
 

@@ -17,7 +17,12 @@
 
 import os
 import sys
-import urlparse
+
+# parse_qsl moved to urlparse module in v2.6
+try:
+  from urlparse import parse_qsl
+except:
+  from cgi import parse_qsl
 
 import oauth2 as oauth
 
@@ -26,23 +31,24 @@ ACCESS_TOKEN_URL  = 'https://api.twitter.com/oauth/access_token'
 AUTHORIZATION_URL = 'https://api.twitter.com/oauth/authorize'
 SIGNIN_URL        = 'https://api.twitter.com/oauth/authenticate'
 
-app_consumer_key    = None
-app_consumer_secret = None
+consumer_key    = 'fYnOcfsh6XoRTJgeunoUjw'
+consumer_secret = 'aJRfe0IdZil4pTfyQGqWCZ02PXKd9nFdiufDAPsxY'
 
-
-if app_consumer_key is None or app_consumer_secret is None:
+if consumer_key is None or consumer_secret is None:
   print 'You need to edit this script and provide values for the'
-  print 'app_consumer_key and also app_consumer_secret'
+  print 'consumer_key and also consumer_secret.'
+  print ''
   print 'The values you need come from Twitter - you need to register'
   print 'as a developer your "application".  This is needed only until'
   print 'Twitter finishes the idea they have of a way to allow open-source'
   print 'based libraries to have a token that can be used to generate a'
   print 'one-time use key that will allow the library to make the request'
   print 'on your behalf.'
+  print ''
   sys.exit(1)
 
 signature_method_hmac_sha1 = oauth.SignatureMethod_HMAC_SHA1()
-oauth_consumer             = oauth.Consumer(key=app_consumer_key, secret=app_consumer_secret)
+oauth_consumer             = oauth.Consumer(key=consumer_key, secret=consumer_secret)
 oauth_client               = oauth.Client(oauth_consumer)
 
 print 'Requesting temp token from Twitter'
@@ -52,7 +58,7 @@ resp, content = oauth_client.request(REQUEST_TOKEN_URL, 'GET')
 if resp['status'] != '200':
   print 'Invalid respond from Twitter requesting temp token: %s' % resp['status']
 else:
-  request_token = dict(urlparse.parse_qsl(content))
+  request_token = dict(parse_qsl(content))
 
   print ''
   print 'Please visit this Twitter page and retrieve the pincode to be used'
@@ -72,13 +78,13 @@ else:
 
   oauth_client  = oauth.Client(oauth_consumer, token)
   resp, content = oauth_client.request(ACCESS_TOKEN_URL, method='POST', body='oauth_verifier=%s' % pincode)
-  access_token  = dict(urlparse.parse_qsl(content))
+  access_token  = dict(parse_qsl(content))
 
   if resp['status'] != '200':
     print 'The request for a Token did not succeed: %s' % resp['status']
     print access_token
   else:
     print 'Your Twitter Access Token key: %s' % access_token['oauth_token']
-    print '                       secret: %s' % access_token['oauth_token_secret']
+    print '          Access Token secret: %s' % access_token['oauth_token_secret']
     print ''
 

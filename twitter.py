@@ -39,6 +39,12 @@ import StringIO
 
 import oauth2 as oauth
 
+# parse_qsl moved to urlparse module in v2.6
+try:
+  from urlparse import parse_qsl, parse_qs
+except:
+  from cgi import parse_qsl, parse_qs
+
 try:
   from hashlib import md5
 except ImportError:
@@ -1340,14 +1346,21 @@ class Api(object):
     Args:
       username:
         The username of the twitter account.  [optional]
+        NOTE: for oAuth based authentication, this is not
+              optional and the value is the Twitter
+              Consumer Key value *not* your Twitter ID
       password:
         The password for the twitter account. [optional]
+        NOTE: for oAuth based authentication, this is not
+              optional and the value is the Twitter
+              Consumer Secret value *not* your Twitter
+              password
       access_token_key:
         The oAuth access token key value you retrieved
-        from running get_access_token.py. [optional]
+        from running get_access_token.py.
       access_token_secret:
         The oAuth access token's secret, also retrieved
-        from the get_access_token.py run. [optional]
+        from the get_access_token.py run.
       input_encoding:
         The encoding used to encode input strings. [optional]
       request_header:
@@ -2488,7 +2501,7 @@ class Api(object):
           parameters = post_data.copy()
       elif http_method == "GET":
           parsed     = urlparse.urlparse(url)
-          parameters = urlparse.parse_qs(parsed.query)
+          parameters = parse_qs(parsed.query)
       else:
           parameters = None
 

@@ -6,10 +6,10 @@
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
 <tr bgcolor="#7799ee">
 <td valign=bottom>&nbsp;<br>
-<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>twitter</strong></big></big> (version 0.7-devel)</font></td
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>twitter</strong></big></big> (version 0.8-devel)</font></td
 ><td align=right valign=bottom
 ><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/Users/dewitt/hg/python-twitter/twitter.py">/Users/dewitt/hg/python-twitter/twitter.py</a></font></td></tr></table>
-    <p><tt>A&nbsp;library&nbsp;that&nbsp;provides&nbsp;a&nbsp;python&nbsp;interface&nbsp;to&nbsp;the&nbsp;Twitter&nbsp;API</tt></p>
+    <p><tt>A&nbsp;library&nbsp;that&nbsp;provides&nbsp;a&nbsp;Python&nbsp;interface&nbsp;to&nbsp;the&nbsp;Twitter&nbsp;API</tt></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#aa55cc">
@@ -21,17 +21,18 @@
 <a href="base64.html">base64</a><br>
 <a href="calendar.html">calendar</a><br>
 <a href="datetime.html">datetime</a><br>
-</td><td width="25%" valign=top><a href="gzip.html">gzip</a><br>
-<a href="httplib.html">httplib</a><br>
+<a href="gzip.html">gzip</a><br>
+</td><td width="25%" valign=top><a href="httplib.html">httplib</a><br>
+<a href="oauth2.html">oauth2</a><br>
 <a href="os.html">os</a><br>
 <a href="rfc822.html">rfc822</a><br>
-</td><td width="25%" valign=top><a href="simplejson.html">simplejson</a><br>
-<a href="sys.html">sys</a><br>
+<a href="simplejson.html">simplejson</a><br>
+</td><td width="25%" valign=top><a href="sys.html">sys</a><br>
 <a href="tempfile.html">tempfile</a><br>
 <a href="textwrap.html">textwrap</a><br>
-</td><td width="25%" valign=top><a href="time.html">time</a><br>
+<a href="time.html">time</a><br>
 <a href="urllib.html">urllib</a><br>
-<a href="urllib2.html">urllib2</a><br>
+</td><td width="25%" valign=top><a href="urllib2.html">urllib2</a><br>
 <a href="urlparse.html">urlparse</a><br>
 </td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -88,9 +89,11 @@ Example&nbsp;usage:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;print&nbsp;[s.text&nbsp;for&nbsp;s&nbsp;in&nbsp;statuses]<br>
 &nbsp;<br>
 &nbsp;&nbsp;To&nbsp;use&nbsp;authentication,&nbsp;instantiate&nbsp;the&nbsp;twitter.<a href="#Api">Api</a>&nbsp;class&nbsp;with&nbsp;a<br>
-&nbsp;&nbsp;username&nbsp;and&nbsp;password:<br>
+&nbsp;&nbsp;username,&nbsp;password&nbsp;and&nbsp;the&nbsp;oAuth&nbsp;key&nbsp;and&nbsp;secret:<br>
 &nbsp;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;api&nbsp;=&nbsp;twitter.<a href="#Api">Api</a>(username='twitter&nbsp;user',&nbsp;password='twitter&nbsp;pass')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;api&nbsp;=&nbsp;twitter.<a href="#Api">Api</a>(username='twitter&nbsp;user',&nbsp;password='twitter&nbsp;pass',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;access_token_key='the_key_given',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;access_token_secret='the_key_secret')<br>
 &nbsp;<br>
 &nbsp;&nbsp;To&nbsp;fetch&nbsp;your&nbsp;friends&nbsp;(after&nbsp;being&nbsp;authenticated):<br>
 &nbsp;<br>
@@ -125,7 +128,7 @@ Example&nbsp;usage:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;api.<a href="#Api-VerifyCredentials">VerifyCredentials</a>()<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="Api-ClearCredentials"><strong>ClearCredentials</strong></a>(self)</dt><dd><tt>Clear&nbsp;the&nbsp;username&nbsp;and&nbsp;password&nbsp;for&nbsp;this&nbsp;instance</tt></dd></dl>
+<dl><dt><a name="Api-ClearCredentials"><strong>ClearCredentials</strong></a>(self)</dt><dd><tt>Clear&nbsp;the&nbsp;any&nbsp;credentials&nbsp;for&nbsp;this&nbsp;instance</tt></dd></dl>
 
 <dl><dt><a name="Api-CreateFavorite"><strong>CreateFavorite</strong></a>(self, status)</dt><dd><tt>Favorites&nbsp;the&nbsp;status&nbsp;specified&nbsp;in&nbsp;the&nbsp;status&nbsp;parameter&nbsp;as&nbsp;the&nbsp;authenticating&nbsp;user.<br>
 Returns&nbsp;the&nbsp;favorite&nbsp;status&nbsp;when&nbsp;successful.<br>
@@ -272,7 +275,7 @@ The&nbsp;twitter.<a href="#Api">Api</a>&nbsp;instance&nbsp;must&nbsp;be&nbsp;aut
 Returns:<br>
 &nbsp;&nbsp;A&nbsp;sequence&nbsp;of&nbsp;twitter.<a href="#User">User</a>&nbsp;instances,&nbsp;one&nbsp;for&nbsp;each&nbsp;friend</tt></dd></dl>
 
-<dl><dt><a name="Api-GetFriendsTimeline"><strong>GetFriendsTimeline</strong></a>(self, user<font color="#909090">=None</font>, count<font color="#909090">=None</font>, since<font color="#909090">=None</font>, since_id<font color="#909090">=None</font>)</dt><dd><tt>Fetch&nbsp;the&nbsp;sequence&nbsp;of&nbsp;twitter.<a href="#Status">Status</a>&nbsp;messages&nbsp;for&nbsp;a&nbsp;user's&nbsp;friends<br>
+<dl><dt><a name="Api-GetFriendsTimeline"><strong>GetFriendsTimeline</strong></a>(self, user<font color="#909090">=None</font>, count<font color="#909090">=None</font>, since<font color="#909090">=None</font>, since_id<font color="#909090">=None</font>, retweets<font color="#909090">=False</font>)</dt><dd><tt>Fetch&nbsp;the&nbsp;sequence&nbsp;of&nbsp;twitter.<a href="#Status">Status</a>&nbsp;messages&nbsp;for&nbsp;a&nbsp;user's&nbsp;friends<br>
 &nbsp;<br>
 The&nbsp;twitter.<a href="#Api">Api</a>&nbsp;instance&nbsp;must&nbsp;be&nbsp;authenticated&nbsp;if&nbsp;the&nbsp;user&nbsp;is&nbsp;private.<br>
 &nbsp;<br>
@@ -313,7 +316,7 @@ Returns:<br>
 &nbsp;&nbsp;A&nbsp;sequence&nbsp;of&nbsp;twitter.<a href="#Status">Status</a>&nbsp;instances,&nbsp;one&nbsp;for&nbsp;each&nbsp;mention&nbsp;of&nbsp;the&nbsp;user.<br>
 &nbsp;&nbsp;see:&nbsp;<a href="http://apiwiki.twitter.com/REST-API-Documentation#statuses/mentions">http://apiwiki.twitter.com/REST-API-Documentation#statuses/mentions</a></tt></dd></dl>
 
-<dl><dt><a name="Api-GetPublicTimeline"><strong>GetPublicTimeline</strong></a>(self, since_id<font color="#909090">=None</font>)</dt><dd><tt>Fetch&nbsp;the&nbsp;sequnce&nbsp;of&nbsp;public&nbsp;twitter.<a href="#Status">Status</a>&nbsp;message&nbsp;for&nbsp;all&nbsp;users.<br>
+<dl><dt><a name="Api-GetPublicTimeline"><strong>GetPublicTimeline</strong></a>(self, since_id<font color="#909090">=None</font>)</dt><dd><tt>Fetch&nbsp;the&nbsp;sequence&nbsp;of&nbsp;public&nbsp;twitter.<a href="#Status">Status</a>&nbsp;message&nbsp;for&nbsp;all&nbsp;users.<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;since_id:<br>
@@ -500,11 +503,19 @@ Args:<br>
 Args:<br>
 &nbsp;&nbsp;cache_timeout:&nbsp;time,&nbsp;in&nbsp;seconds,&nbsp;that&nbsp;responses&nbsp;should&nbsp;be&nbsp;reused.</tt></dd></dl>
 
-<dl><dt><a name="Api-SetCredentials"><strong>SetCredentials</strong></a>(self, username, password)</dt><dd><tt>Set&nbsp;the&nbsp;username&nbsp;and&nbsp;password&nbsp;for&nbsp;this&nbsp;instance<br>
+<dl><dt><a name="Api-SetCredentials"><strong>SetCredentials</strong></a>(self, username, password, access_token_key<font color="#909090">=None</font>, access_token_secret<font color="#909090">=None</font>)</dt><dd><tt>Set&nbsp;the&nbsp;username&nbsp;and&nbsp;password&nbsp;for&nbsp;this&nbsp;instance<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;username:&nbsp;The&nbsp;twitter&nbsp;username.<br>
-&nbsp;&nbsp;password:&nbsp;The&nbsp;twitter&nbsp;password.</tt></dd></dl>
+&nbsp;&nbsp;username:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;username&nbsp;of&nbsp;the&nbsp;twitter&nbsp;account.<br>
+&nbsp;&nbsp;password:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;password&nbsp;for&nbsp;the&nbsp;twitter&nbsp;account.<br>
+&nbsp;&nbsp;access_token_key:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;oAuth&nbsp;access&nbsp;token&nbsp;key&nbsp;value&nbsp;you&nbsp;retrieved<br>
+&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;running&nbsp;get_access_token.py.<br>
+&nbsp;&nbsp;access_token_secret:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;oAuth&nbsp;access&nbsp;token's&nbsp;secret,&nbsp;also&nbsp;retrieved<br>
+&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;the&nbsp;get_access_token.py&nbsp;run.</tt></dd></dl>
 
 <dl><dt><a name="Api-SetSource"><strong>SetSource</strong></a>(self, source)</dt><dd><tt>Suggest&nbsp;the&nbsp;"from&nbsp;source"&nbsp;value&nbsp;to&nbsp;be&nbsp;displayed&nbsp;on&nbsp;the&nbsp;Twitter&nbsp;web&nbsp;site.<br>
 &nbsp;<br>
@@ -546,13 +557,26 @@ Returns:&nbsp;<br>
 &nbsp;&nbsp;A&nbsp;twitter.<a href="#User">User</a>&nbsp;instance&nbsp;representing&nbsp;that&nbsp;user&nbsp;if&nbsp;the<br>
 &nbsp;&nbsp;credentials&nbsp;are&nbsp;valid,&nbsp;None&nbsp;otherwise.</tt></dd></dl>
 
-<dl><dt><a name="Api-__init__"><strong>__init__</strong></a>(self, username<font color="#909090">=None</font>, password<font color="#909090">=None</font>, input_encoding<font color="#909090">=None</font>, request_headers<font color="#909090">=None</font>, cache<font color="#909090">=&lt;object object at 0x1001da0a0&gt;</font>, shortner<font color="#909090">=None</font>, base_url<font color="#909090">=None</font>, use_gzip_compression<font color="#909090">=False</font>)</dt><dd><tt>Instantiate&nbsp;a&nbsp;new&nbsp;twitter.<a href="#Api">Api</a>&nbsp;<a href="__builtin__.html#object">object</a>.<br>
+<dl><dt><a name="Api-__init__"><strong>__init__</strong></a>(self, username<font color="#909090">=None</font>, password<font color="#909090">=None</font>, access_token_key<font color="#909090">=None</font>, access_token_secret<font color="#909090">=None</font>, input_encoding<font color="#909090">=None</font>, request_headers<font color="#909090">=None</font>, cache<font color="#909090">=&lt;object object at 0x1001da0a0&gt;</font>, shortner<font color="#909090">=None</font>, base_url<font color="#909090">=None</font>, use_gzip_compression<font color="#909090">=False</font>)</dt><dd><tt>Instantiate&nbsp;a&nbsp;new&nbsp;twitter.<a href="#Api">Api</a>&nbsp;<a href="__builtin__.html#object">object</a>.<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;username:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;username&nbsp;of&nbsp;the&nbsp;twitter&nbsp;account.&nbsp;&nbsp;[optional]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;NOTE:&nbsp;for&nbsp;oAuth&nbsp;based&nbsp;authentication,&nbsp;this&nbsp;is&nbsp;not<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;optional&nbsp;and&nbsp;the&nbsp;value&nbsp;is&nbsp;the&nbsp;Twitter<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Consumer&nbsp;Key&nbsp;value&nbsp;*not*&nbsp;your&nbsp;Twitter&nbsp;ID<br>
 &nbsp;&nbsp;password:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;password&nbsp;for&nbsp;the&nbsp;twitter&nbsp;account.&nbsp;[optional]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;NOTE:&nbsp;for&nbsp;oAuth&nbsp;based&nbsp;authentication,&nbsp;this&nbsp;is&nbsp;not<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;optional&nbsp;and&nbsp;the&nbsp;value&nbsp;is&nbsp;the&nbsp;Twitter<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Consumer&nbsp;Secret&nbsp;value&nbsp;*not*&nbsp;your&nbsp;Twitter<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;password<br>
+&nbsp;&nbsp;access_token_key:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;oAuth&nbsp;access&nbsp;token&nbsp;key&nbsp;value&nbsp;you&nbsp;retrieved<br>
+&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;running&nbsp;get_access_token.py.<br>
+&nbsp;&nbsp;access_token_secret:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;oAuth&nbsp;access&nbsp;token's&nbsp;secret,&nbsp;also&nbsp;retrieved<br>
+&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;the&nbsp;get_access_token.py&nbsp;run.<br>
 &nbsp;&nbsp;input_encoding:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;encoding&nbsp;used&nbsp;to&nbsp;encode&nbsp;input&nbsp;strings.&nbsp;[optional]<br>
 &nbsp;&nbsp;request_header:<br>
@@ -1374,10 +1398,14 @@ Returns:<br>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
     
 <tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><strong>CHARACTER_LIMIT</strong> = 140<br>
+<td width="100%"><strong>ACCESS_TOKEN_URL</strong> = 'https://api.twitter.com/oauth/access_token'<br>
+<strong>AUTHORIZATION_URL</strong> = 'https://api.twitter.com/oauth/authorize'<br>
+<strong>CHARACTER_LIMIT</strong> = 140<br>
 <strong>DEFAULT_CACHE</strong> = &lt;object object at 0x1001da0a0&gt;<br>
+<strong>REQUEST_TOKEN_URL</strong> = 'https://api.twitter.com/oauth/request_token'<br>
+<strong>SIGNIN_URL</strong> = 'https://api.twitter.com/oauth/authenticate'<br>
 <strong>__author__</strong> = 'python-twitter@googlegroups.com'<br>
-<strong>__version__</strong> = '0.7-devel'</td></tr></table><p>
+<strong>__version__</strong> = '0.8-devel'</td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#7799ee">
 <td colspan=3 valign=bottom>&nbsp;<br>

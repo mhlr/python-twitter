@@ -1,3 +1,11 @@
+2010-08-17
+
+ Fixed error in the POST path for _FetchUrl() where by
+ I show to the world that yes, I do make last minute
+ changes and completely forget to test them :(
+ Thanks to Peter Sanchez for finding and pointing to
+ working code that showed the fix
+
 2010-08-15
 
  Added more help text (I hope it helps) to the README
@@ -11,6 +19,9 @@
  2.5 and 2.6 so the oAuth update broke the lib under
  python2.5.  Thanks to Rich for the bug find (sorry
  it had to be found the hard way!)
+
+ from changeset 184:60315000989c by DeWitt
+ Update the generated twitter.py docs to match the trunk
 
 2010-08-14
 

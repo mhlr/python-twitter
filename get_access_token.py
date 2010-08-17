@@ -31,8 +31,8 @@ ACCESS_TOKEN_URL  = 'https://api.twitter.com/oauth/access_token'
 AUTHORIZATION_URL = 'https://api.twitter.com/oauth/authorize'
 SIGNIN_URL        = 'https://api.twitter.com/oauth/authenticate'
 
-consumer_key    = 'fYnOcfsh6XoRTJgeunoUjw'
-consumer_secret = 'aJRfe0IdZil4pTfyQGqWCZ02PXKd9nFdiufDAPsxY'
+consumer_key    = None
+consumer_secret = None
 
 if consumer_key is None or consumer_secret is None:
   print 'You need to edit this script and provide values for the'

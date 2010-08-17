@@ -2495,15 +2495,8 @@ class Api(object):
       opener.addheaders.append(('Accept-Encoding', 'gzip'))
 
     if self._oauth_consumer is not None:
-      headers = {}
-
       if post_data and http_method == "POST":
-          parameters = post_data.copy()
-      elif http_method == "GET":
-          parsed     = urlparse.urlparse(url)
-          parameters = parse_qs(parsed.query)
-      else:
-          parameters = None
+        parameters = post_data.copy()
 
       req = oauth.Request.from_consumer_and_token(self._oauth_consumer,
                                                   token=self._oauth_token,
@@ -2512,17 +2505,14 @@ class Api(object):
 
       req.sign_request(self._signature_method_hmac_sha1, self._oauth_consumer, self._oauth_token)
 
-      headers.update(req.to_header())
+      headers = req.to_header()
 
       if http_method == "POST":
         encoded_post_data = req.to_postdata()
-        headers['Content-Type'] = 'application/x-www-form-urlencoded'
       else:
         encoded_post_data = None
-
-      url = req.to_url()
+        url = req.to_url()
     else:
-      # Add key/value parameters to the query string of the url
       url = self._BuildUrl(url, extra_params=extra_params)
       encoded_post_data = self._EncodePostData(post_data)
 

@@ -4,6 +4,12 @@
  in Issue 64 (http://code.google.com/p/python-twitter/issues/detail?id=64)
  Patch provided by Thomas Bohmbach
 
+ Applied patch provided by liris.pp in Issue 147
+ http://code.google.com/p/python-twitter/issues/detail?id=147
+ Ensures that during a PostStatus we count the length using a unicode aware
+ len() routine.  Tweaked patch slightly to take into account that the
+ twitter.Api() instance may have been setup with None for input_encoding.
+
 2010-08-17
 
  Fixed error in the POST path for _FetchUrl() where by

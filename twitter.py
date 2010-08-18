@@ -26,7 +26,6 @@ import datetime
 import httplib
 import os
 import rfc822
-import simplejson
 import sys
 import tempfile
 import textwrap
@@ -37,18 +36,32 @@ import urlparse
 import gzip
 import StringIO
 
-import oauth2 as oauth
+try:
+  # Python >= 2.6
+  import json as simplejson
+except ImportError:
+  try:
+    # Python < 2.6
+    import simplejson
+  except ImportError:
+    try:
+      # Google App Engine
+      from django.utils import simplejson
+    except ImportError:
+      raise ImportError, "Unable to load a json library"
 
 # parse_qsl moved to urlparse module in v2.6
 try:
   from urlparse import parse_qsl, parse_qs
-except:
+except ImportError:
   from cgi import parse_qsl, parse_qs
 
 try:
   from hashlib import md5
 except ImportError:
   from md5 import md5
+
+import oauth2 as oauth
 
 
 CHARACTER_LIMIT = 140

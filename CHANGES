@@ -1,3 +1,9 @@
+2010-08-18
+
+ Applied the json/simplejson part of the patch found
+ in Issue 64 (http://code.google.com/p/python-twitter/issues/detail?id=64)
+ Patch provided by Thomas Bohmbach
+
 2010-08-17
 
  Fixed error in the POST path for _FetchUrl() where by

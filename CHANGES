@@ -1,3 +1,18 @@
+2010-08-24
+
+ Fixed introduced bug in the Destroy* and Create* API calls
+ where any of the routines were passing in an empty dict for
+ POST data.  Before the oAuth change that was enough to tell
+ _FetchUrl() to use POST instead of GET but now a non-empty
+ dict is required.
+
+ Issue 144
+ http://code.google.com/p/python-twitter/issues/detail?id=144
+ GetFriends() where it was failing with a 'unicode object has
+ no attribute get'. This was caused when Twitter changed how
+ they return the JSON data. It used to be a straight list but
+ now there are some elements *and* then the list.
+
 2010-08-18
 
  Applied the json/simplejson part of the patch found

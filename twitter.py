@@ -1767,7 +1767,7 @@ class Api(object):
     except:
       raise TwitterError("id must be an integer")
     url = '%s/statuses/destroy/%s.json' % (self.base_url, id)
-    json = self._FetchUrl(url, post_data={})
+    json = self._FetchUrl(url, post_data={'id': id})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return Status.NewFromJsonDict(data)
@@ -1898,7 +1898,7 @@ class Api(object):
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    return [User.NewFromJsonDict(x) for x in data]
+    return [User.NewFromJsonDict(x) for x in data['users']]
 
   def GetFriendIDs(self, user=None, cursor=-1):
       '''Returns a list of twitter user id's for every person
@@ -2059,7 +2059,7 @@ class Api(object):
       A twitter.DirectMessage instance representing the message destroyed
     '''
     url = '%s/direct_messages/destroy/%s.json' % (self.base_url, id)
-    json = self._FetchUrl(url, post_data={})
+    json = self._FetchUrl(url, post_data={'id': id})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return DirectMessage.NewFromJsonDict(data)
@@ -2075,7 +2075,7 @@ class Api(object):
       A twitter.User instance representing the befriended user.
     '''
     url = '%s/friendships/create/%s.json' % (self.base_url, user)
-    json = self._FetchUrl(url, post_data={})
+    json = self._FetchUrl(url, post_data={'user': user})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return User.NewFromJsonDict(data)
@@ -2091,7 +2091,7 @@ class Api(object):
       A twitter.User instance representing the discontinued friend.
     '''
     url = '%s/friendships/destroy/%s.json' % (self.base_url, user)
-    json = self._FetchUrl(url, post_data={})
+    json = self._FetchUrl(url, post_data={'user': user})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return User.NewFromJsonDict(data)
@@ -2108,7 +2108,7 @@ class Api(object):
       A twitter.Status instance representing the newly-marked favorite.
     '''
     url = '%s/favorites/create/%s.json' % (self.base_url, status.id)
-    json = self._FetchUrl(url, post_data={})
+    json = self._FetchUrl(url, post_data={'id': status.id})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return Status.NewFromJsonDict(data)
@@ -2125,7 +2125,7 @@ class Api(object):
       A twitter.Status instance representing the newly-unmarked favorite.
     '''
     url = '%s/favorites/destroy/%s.json' % (self.base_url, status.id)
-    json = self._FetchUrl(url, post_data={})
+    json = self._FetchUrl(url, post_data={'id': status.id})
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
     return Status.NewFromJsonDict(data)

@@ -1,3 +1,16 @@
+2010-08-25
+
+ First pass at adding list support.
+ Added a new List class and also added to the Api class
+ new methods for working with lists:
+
+   CreateList(self, user, name, mode=None, description=None)
+   DestroyList(self, user, id)
+   CreateSubscription(self, owner, list)
+   DestroySubscription(self, owner, list)
+   GetSubscriptions(self, user, cursor=-1)
+   GetLists(self, user, cursor=-1)
+   
 2010-08-24
 
  Fixed introduced bug in the Destroy* and Create* API calls

@@ -542,5 +542,53 @@ def suite():
   suite.addTests(unittest.makeSuite(ApiTest))
   return suite
 
+def pre_test_checks():
+  """Pre-flight checks for the tests. Specifically:
+  o Checks that the consumer key and secret are valid
+  o Checks that the oauth token provided is valid
+    
+  If everything is valid then this method returns True. 
+  Otherwise, this method returns false.
+  """
+  # Check that an oauth token exists
+  import twitter_test_keys
+  import oauth2 as oauth
+  
+  if twitter_test_keys.OAUTH_TOKEN == '' or \
+     twitter_test_keys.OAUTH_SECRET == '' or \
+     twitter_test_keys.CONSUMER_KEY == '' or \
+     twitter_test_keys.CONSUMER_SECRET == '':
+    print "CONSUMER_KEY, CONSUMER_SECRET, OAUTH_TOKEN and OAUTH_SECRET"
+    print "must be defined in twitter_test_keys to run the tests"
+    return False
+      
+  # Check the consumer key/secret is valid by getting a new oauth token
+  oauth_consumer = oauth.Consumer(key=twitter_test_keys.CONSUMER_KEY, 
+                                  secret=twitter_test_keys.CONSUMER_SECRET)
+  oauth_client = oauth.Client(oauth_consumer)
+  resp, content = oauth_client.request(twitter.REQUEST_TOKEN_URL, 'GET')
+    
+  if resp['status'] != '200':
+    print "Could not get a temporary token from Twitter."
+    print "Check that CONSUMER_KEY and CONSUMER_SECRET are both valid"
+    return False
+      
+  # Check the keys are valid
+  api = twitter.Api(username=twitter_test_keys.CONSUMER_KEY,
+                    password=twitter_test_keys.CONSUMER_SECRET,
+                    access_token_key=twitter_test_keys.OAUTH_TOKEN,
+                    access_token_secret=twitter_test_keys.OAUTH_SECRET)
+  try:
+      api.VerifyCredentials()
+  except twitter.TwitterError, e:
+    print "Could not verify twitter credentials."
+    print "Check that OAUTH_TOKEN and OAUTH_SECRET are both valid"
+    print "For debug purposes the error was: %s"%e.message
+    return False
+  
+  # Everything must be valid to get this far
+  return True
+  
 if __name__ == '__main__':
-  unittest.main()
+  if pre_test_checks():
+    unittest.main()

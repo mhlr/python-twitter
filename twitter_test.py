@@ -542,6 +542,18 @@ def suite():
   suite.addTests(unittest.makeSuite(ApiTest))
   return suite
 
+default_test_keys = """
+# BEFORE EDITING THIS FILE READ THIS:
+# Do NOT share this file with anyone. Doing so will compromise the security of
+# the Twitter application that you have used below
+
+CONSUMER_KEY = '' # Set this to the consumer key of an application you own
+CONSUMER_SECRET = '' # Set this to the consumer secret of an application you own
+
+OAUTH_TOKEN = '' # Set this to the token obtained from get_access_token
+OAUTH_SECRET = '' # Set this to the secret of the token obtained from get_access_token
+"""
+
 def pre_test_checks():
   """Pre-flight checks for the tests. Specifically:
   o Checks that the consumer key and secret are valid
@@ -550,8 +562,21 @@ def pre_test_checks():
   If everything is valid then this method returns True. 
   Otherwise, this method returns false.
   """
-  # Check that an oauth token exists
-  import twitter_test_keys
+  
+  # Check that the test keys file exists
+  try:
+    import twitter_test_keys
+  except ImportError:
+    # Create the test keys file
+    print "Could not import twitter_test_keys"
+    print "twitter_test_keys.py has been created for you"
+    print "Fill in the data in twitter_test_keys.py and retry"
+    out = open("twitter_test_keys.py", "w")
+    out.write(default_test_keys)
+    out.close()
+    return False
+    
+  # Check that the keys are defined 
   import oauth2 as oauth
   
   if twitter_test_keys.OAUTH_TOKEN == '' or \

@@ -1,5 +1,9 @@
 2010-08-26
 
+ Applied docstring tweak suggested by dclinton in revision comment 
+ http://code.google.com/p/python-twitter/source/detail?r=a858412e38f7e3856fef924291ef039284d3a6e1
+ Thanks for the catch! 
+
  Issue 164
  http://code.google.com/p/python-twitter/issues/detail?id=164
  Patch by yaemog which adds GetRetweets support.

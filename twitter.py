@@ -1947,8 +1947,8 @@ class Api(object):
       user:
         Specifies the ID or screen name of the user for whom to return
         the friends_timeline.  If not specified then the authenticated
-        set in the twitter.Api instance will be used.  [Optional]
-      count: 
+        user set in the twitter.Api instance will be used.  [Optional]
+      count:
         Specifies the number of statuses to retrieve. May not be
         greater than 200. [Optional]
       since:

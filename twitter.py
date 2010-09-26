@@ -591,23 +591,23 @@ class User(object):
                   doc='The real name of this user.')
 
   def GetScreenName(self):
-    '''Get the short username of this user.
+    '''Get the short twitter name of this user.
 
     Returns:
-      The short username of this user
+      The short twitter name of this user
     '''
     return self._screen_name
 
   def SetScreenName(self, screen_name):
-    '''Set the short username of this user.
+    '''Set the short twitter name of this user.
 
     Args:
-      screen_name: the short username of this user
+      screen_name: the short twitter name of this user
     '''
     self._screen_name = screen_name
 
   screen_name = property(GetScreenName, SetScreenName,
-                         doc='The short username of this user.')
+                         doc='The short twitter name of this user.')
 
   def GetLocation(self):
     '''Get the geographic location of this user.
@@ -1647,9 +1647,10 @@ class Api(object):
       >>> print [s.text for s in statuses]
 
     To use authentication, instantiate the twitter.Api class with a
-    username, password and the oAuth key and secret:
+    consumer key and secret; and the oAuth key and secret:
 
-      >>> api = twitter.Api(username='twitter user', password='twitter pass',
+      >>> api = twitter.Api(consumer_key='twitter consumer key',
+                            consumer_secret='twitter consumer secret',
                             access_token_key='the_key_given',
                             access_token_secret='the_key_secret')
 
@@ -1690,8 +1691,8 @@ class Api(object):
   _API_REALM = 'Twitter API'
 
   def __init__(self,
-               username=None,
-               password=None,
+               consumer_key=None,
+               consumer_secret=None,
                access_token_key=None,
                access_token_secret=None,
                input_encoding=None,
@@ -1703,17 +1704,10 @@ class Api(object):
     '''Instantiate a new twitter.Api object.
 
     Args:
-      username:
-        The username of the twitter account.  [optional]
-        NOTE: for oAuth based authentication, this is not
-              optional and the value is the Twitter
-              Consumer Key value *not* your Twitter ID
-      password:
-        The password for the twitter account. [optional]
-        NOTE: for oAuth based authentication, this is not
-              optional and the value is the Twitter
-              Consumer Secret value *not* your Twitter
-              password
+      consumer_key:
+        Your Twitter user's consumer_key.
+      consumer_secret:
+        Your Twitter user's consumer_secret.
       access_token_key:
         The oAuth access token key value you retrieved
         from running get_access_token.py.
@@ -1753,28 +1747,28 @@ class Api(object):
     else:
       self.base_url = base_url
 
-    if username is not None and (access_token_key is None or 
-                                 access_token_secret is None):
+    if consumer_key is not None and (access_token_key is None or
+                                     access_token_secret is None):
       print >> sys.stderr, 'Twitter now requires an oAuth Access Token for API calls.'
       print >> sys.stderr, 'If your using this library from a command line utility, please'
       print >> sys.stderr, 'run the the included get_access_token.py tool to generate one.'
 
       raise TwitterError('Twitter requires oAuth Access Token for all API access')
 
-    self.SetCredentials(username, password, access_token_key, access_token_secret)
+    self.SetCredentials(consumer_key, consumer_secret, access_token_key, access_token_secret)
 
   def SetCredentials(self,
-                     username,
-                     password,
+                     consumer_key,
+                     consumer_secret,
                      access_token_key=None,
                      access_token_secret=None):
-    '''Set the username and password for this instance
+    '''Set the consumer_key and consumer_secret for this instance
 
     Args:
-      username:
-        The username of the twitter account.
-      password:
-        The password for the twitter account.
+      consumer_key:
+        The consumer_key of the twitter account.
+      consumer_secret:
+        The consumer_secret for the twitter account.
       access_token_key:
         The oAuth access token key value you retrieved
         from running get_access_token.py.
@@ -1782,25 +1776,25 @@ class Api(object):
         The oAuth access token's secret, also retrieved
         from the get_access_token.py run.
     '''
-    self._username            = username
-    self._password            = password
+    self._consumer_key        = consumer_key
+    self._consumer_secret     = consumer_secret
     self._access_token_key    = access_token_key
     self._access_token_secret = access_token_secret
     self._oauth_consumer      = None
 
-    if username is not None and password is not None and \
+    if consumer_key is not None and consumer_secret is not None and \
        access_token_key is not None and access_token_secret is not None:
       self._signature_method_plaintext = oauth.SignatureMethod_PLAINTEXT()
       self._signature_method_hmac_sha1 = oauth.SignatureMethod_HMAC_SHA1()
 
       self._oauth_token    = oauth.Token(key=access_token_key, secret=access_token_secret)
-      self._oauth_consumer = oauth.Consumer(key=username, secret=password)
+      self._oauth_consumer = oauth.Consumer(key=consumer_key, secret=consumer_secret)
 
   def ClearCredentials(self):
     '''Clear the any credentials for this instance
     '''
-    self._username            = None
-    self._password            = None
+    self._consumer_key        = None
+    self._consumer_secret     = None
     self._access_token_key    = None
     self._access_token_secret = None
     self._oauth_consumer      = None
@@ -1947,8 +1941,8 @@ class Api(object):
     Args:
       user:
         Specifies the ID or screen name of the user for whom to return
-        the friends_timeline.  If unspecified, the username and password
-        must be set in the twitter.Api instance.  [Optional]
+        the friends_timeline.  If not specified then the authenticated
+        set in the twitter.Api instance will be used.  [Optional]
       count: 
         Specifies the number of statuses to retrieve. May not be
         greater than 200. [Optional]
@@ -2191,7 +2185,7 @@ class Api(object):
 
   def GetReplies(self, since=None, since_id=None, page=None): 
     '''Get a sequence of status messages representing the 20 most recent
-    replies (status updates prefixed with @username) to the authenticating
+    replies (status updates prefixed with @twitterID) to the authenticating
     user.
 
     Args:
@@ -2225,7 +2219,7 @@ class Api(object):
     '''Fetch the sequence of twitter.User instances, one for each friend.
 
     Args:
-      user: the username or id of the user whose friends you are fetching.  If
+      user: the twitter name or id of the user whose friends you are fetching.  If
       not specified, defaults to the authenticated user. [optional]
 
     The twitter.Api instance must be authenticated.
@@ -2328,7 +2322,7 @@ class Api(object):
     The twitter.Api instance must be authenticated.
 
     Args:
-      user: The username or id of the user to retrieve.
+      user: The twitter name or id of the user to retrieve.
 
     Returns:
       A twitter.User instance representing that user
@@ -2485,7 +2479,7 @@ class Api(object):
     
     Args:
       user:
-        The username or id of the user whose favorites you are fetching.
+        The twitter name or id of the user whose favorites you are fetching.
         If not specified, defaults to the authenticated user. [optional]
     
       page:
@@ -2514,7 +2508,7 @@ class Api(object):
                   since_id=None,
                   max_id=None,
                   page=None):
-    '''Returns the 20 most recent mentions (status containing @username)
+    '''Returns the 20 most recent mentions (status containing @twitterID)
     for the authenticating user.
     
     Args:
@@ -2561,7 +2555,7 @@ class Api(object):
     The twitter.Api instance must be authenticated.
 
     Args:
-      user: username to create the list for
+      user: twitter name to create the list for
       name: new name for the list
       mode: 'public' or 'private'. defaults to 'public' if not given
             [optional]
@@ -2639,7 +2633,7 @@ class Api(object):
     '''Fetch the sequence of Lists that the given user is subscribed to
 
     Args:
-      user: the username or id of the user
+      user: the twitter name or id of the user
       cursor: "page" value that Twitter will use to start building the
               list sequence from.  -1 to start at the beginning.
               Twitter will return in the result the values for next_cursor
@@ -2668,7 +2662,7 @@ class Api(object):
     '''Fetch the sequence of lists for a user.
 
     Args:
-      user: the username or id of the user whose friends you are fetching.
+      user: the twitter name or id of the user whose friends you are fetching.
             If the passed in user is the same as the authenticated user
             then you will also receive private list data.
 
@@ -3027,8 +3021,8 @@ class Api(object):
       opener.close()
     else:
       # Unique keys are a combination of the url and the oAuth Consumer Key
-      if self._username:
-        key = self._username + ':' + url
+      if self._consumer_key:
+        key = self._consumer_key + ':' + url
       else:
         key = url
 

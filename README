@@ -106,12 +106,8 @@ The python-twitter library now only supports oAuth authentication as the
 Twitter devs have indicated that oAuth is the only method that will be
 supported moving forward.
 
-The username parameter to twitter.Api() is named that because some calls
-still allow for un-authenticated access, and for them you can pass in a
-screen name or twitter ID.  This will probably change (again) soon.
-
-
-  >>> api = twitter.Api(username='consumer_key', password='consumer_secret',
+  >>> api = twitter.Api(consumer_key='consumer_key',
+                        consumer_secret='consumer_secret',
                         access_token_key='access_token',
                         access_token_secret='access_token_secret')
 

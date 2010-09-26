@@ -1,3 +1,12 @@
+2010-08-26
+
+ Changed username/password parameter to Api class to be
+ consumer_key/consumer_secret to better match the new
+ oAuth only world that Twitter has demanded.
+ 
+ Added debugHTTP to the parameter list to Api class to
+ control if/when the urllib debug output is displayed.
+
 2010-08-25
 
  First pass at adding list support.

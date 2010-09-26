@@ -2240,17 +2240,19 @@ class Api(object):
     return Status.NewFromJsonDict(data)
 
   def GetRetweets(self, statusid):
-    '''Returns up to 100 of the first retweets of the tweet identified by statusid
+    '''Returns up to 100 of the first retweets of the tweet identified
+    by statusid
+
     Args:
       statusid:
-        The id of the tweet for which retweets should be found
+        The id of the tweet for which retweets should be searched for
 
     Returns:
       A list of twitter.Status instances, which are retweets of statusid
     '''
     if not self._oauth_consumer:
       raise TwitterError("The twitter.Api instsance must be authenticated.")
-    url = '%s/statuses/retweets/%s.json?include_entities=ture&inclue_rts=true' % (self.base_url, statusid)
+    url = '%s/statuses/retweets/%s.json?include_entities=true&include_rts=true' % (self.base_url, statusid)
     parameters = {}
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)

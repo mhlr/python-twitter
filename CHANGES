@@ -1,4 +1,9 @@
 2010-08-26
+
+ Issue 164
+ http://code.google.com/p/python-twitter/issues/detail?id=164
+ Patch by yaemog which adds GetRetweets support.
+ Small tweaks and two typo fixes post-patch.
              
  Issue 165
  http://code.google.com/p/python-twitter/issues/detail?id=165

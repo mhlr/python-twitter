@@ -2220,6 +2220,25 @@ class Api(object):
     self._CheckForTwitterError(data)
     return [Status.NewFromJsonDict(x) for x in data]
 
+  def GetStatus(self, statusid, include_entities = True):
+    ''' Retrieves a single status, specified by the statusid parameter.
+
+    Args:
+      statusid: Id of the status to fetch
+      include_entities: [optional] include the entities structure (e.g., mentions, urls, or hashtas).
+      
+    Returns:
+      A twitter.Status instance representing the tweet specified by the statusid parameter.
+    '''
+    url = '%s/statuses/show/%s.json' % (self.base_url, statusid)
+    parameters = {}
+    if include_entities:
+      parameters['include_entities'] = True
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    return Status.NewFromJsonDict(data)
+
   def GetFriends(self, user=None, cursor=-1):
     '''Fetch the sequence of twitter.User instances, one for each friend.
 

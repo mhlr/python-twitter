@@ -1,5 +1,11 @@
 2010-08-26
 
+ Issue 150
+ http://code.google.com/p/python-twitter/issues/detail?id=150
+ Patch by blhobbes which removes a double quoting issue that
+ was happening for GetSearch()
+ Reported by huubhuubbarbatruuk
+
  Issue 160
  http://code.google.com/p/python-twitter/issues/detail?id=160
  Patch by yaemog which adds support for include_rts and

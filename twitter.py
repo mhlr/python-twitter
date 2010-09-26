@@ -1700,7 +1700,8 @@ class Api(object):
                cache=DEFAULT_CACHE,
                shortner=None,
                base_url=None,
-               use_gzip_compression=False):
+               use_gzip_compression=False,
+               debugHTTP=False):
     '''Instantiate a new twitter.Api object.
 
     Args:
@@ -1730,12 +1731,16 @@ class Api(object):
       use_gzip_compression:
         Set to True to tell enable gzip compression for any call
         made to Twitter.  Defaults to False. [optional]
+      debugHTTP:
+        Set to True to enable debug output from urllib2 when performing
+        any HTTP requests.  Defaults to False. [optional]
     '''
     self.SetCache(cache)
     self._urllib         = urllib2
     self._cache_timeout  = Api.DEFAULT_CACHE_TIMEOUT
     self._input_encoding = input_encoding
     self._use_gzip       = use_gzip_compression
+    self._debugHTTP      = debugHTTP
     self._oauth_consumer = None
 
     self._InitializeRequestHeaders(request_headers)
@@ -2976,8 +2981,13 @@ class Api(object):
     else:
       http_method = "GET"
 
-    http_handler  = self._urllib.HTTPHandler(debuglevel=1)
-    https_handler = self._urllib.HTTPSHandler(debuglevel=1)
+    if self._debugHTTP:
+      _debug = 1
+    else:
+      _debug = 0
+
+    http_handler  = self._urllib.HTTPHandler(debuglevel=_debug)
+    https_handler = self._urllib.HTTPSHandler(debuglevel=_debug)
 
     opener = self._urllib.OpenerDirector()
     opener.add_handler(http_handler)

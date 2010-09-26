@@ -2239,6 +2239,24 @@ class Api(object):
     self._CheckForTwitterError(data)
     return Status.NewFromJsonDict(data)
 
+  def GetRetweets(self, statusid):
+    '''Returns up to 100 of the first retweets of the tweet identified by statusid
+    Args:
+      statusid:
+        The id of the tweet for which retweets should be found
+
+    Returns:
+      A list of twitter.Status instances, which are retweets of statusid
+    '''
+    if not self._oauth_consumer:
+      raise TwitterError("The twitter.Api instsance must be authenticated.")
+    url = '%s/statuses/retweets/%s.json?include_entities=ture&inclue_rts=true' % (self.base_url, statusid)
+    parameters = {}
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    return [Status.NewFromJsonDict(s) for s in data]
+
   def GetFriends(self, user=None, cursor=-1):
     '''Fetch the sequence of twitter.User instances, one for each friend.
 

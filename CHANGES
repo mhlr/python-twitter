@@ -1,5 +1,10 @@
 2010-08-26
 
+ Issue 163
+ http://code.google.com/p/python-twitter/issues/detail?id=163
+ Patch by yaemog which adds users/lookup support.
+ Small tweaks to docstring only post-patch.
+
  Changed username/password parameter to Api class to be
  consumer_key/consumer_secret to better match the new
  oAuth only world that Twitter has demanded.

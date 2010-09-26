@@ -2321,24 +2321,26 @@ class Api(object):
     self._CheckForTwitterError(data)
     return [User.NewFromJsonDict(x) for x in data]
 
-  def UsersLookup(self, user_id = None, screen_name = None, users = None):
-    '''Fetch exended information for the specified users. Users may be specified 
-       either as lists of either user_ids, screen_names, or twitter.User objects.
-       The list of users that is queried is the union of all specified parameters.
-      
-       The twitter.Api instance must be authenticated.
+  def UsersLookup(self, user_id=None, screen_name=None, users=None):
+    '''Fetch extended information for the specified users.
 
-       Args:
-         user_id:
-           A list of user_ids to retrieve extended information 
-         screen_name:
-           A list of screen_names to retrieve extended information
-         users:
-           A list of twitter.User objects to retrieve extended information
-        
-       Returns: A list of twitter.User objects for the requested users
+    Users may be specified either as lists of either user_ids, screen_names,
+    or twitter.User objects. The list of users that are queried is the union
+    of all specified parameters.
+
+    The twitter.Api instance must be authenticated.
+
+    Args:
+      user_id:
+        A list of user_ids to retrieve extended information 
+      screen_name:
+        A list of screen_names to retrieve extended information
+      users:
+        A list of twitter.User objects to retrieve extended information
+
+    Returns: A list of twitter.User objects for the requested users
     '''
-    
+
     if not self._oauth_consumer:
       raise TwitterError("The twitter.Api instance must be authenticated.")
     if not user_id and not screen_name and not users:

@@ -1,4 +1,9 @@
 2010-08-26
+             
+ Issue 165
+ http://code.google.com/p/python-twitter/issues/detail?id=165
+ Patch by yaemog which adds GetStatus support.
+ Small tweaks post-patch
 
  Issue 163
  http://code.google.com/p/python-twitter/issues/detail?id=163

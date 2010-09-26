@@ -2078,7 +2078,7 @@ class Api(object):
     The twitter.Api instance must be authenticated if the status message is private.
 
     Args:
-      id: The numerical ID of the status you're trying to retrieve.
+      id: The numeric ID of the status you are trying to retrieve.
 
     Returns:
       A twitter.Status instance representing that status message

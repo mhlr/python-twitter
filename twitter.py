@@ -2100,10 +2100,10 @@ class Api(object):
          Specifies the page of results to retrieve. Note: there are
          pagination limits. [optional]
       include_rts:
-        Specifies whether retweets should be included
+        Specifies whether retweets should be included. [optional]
       include_entities:
-        Specifies whether entities should be retrieved for the 
-        individual Status elements
+        Specifies whether entities should be retrieved for the
+        individual Status elements. [optional]
 
     Returns:
       A sequence of Status instances, one for each message up to count

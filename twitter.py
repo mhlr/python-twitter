@@ -102,6 +102,9 @@ class Status(object):
     status.location
     status.relative_created_at # read only
     status.user
+    status.urls
+    status.user_mentions
+    status.hashtags
   '''
   def __init__(self,
                created_at=None,
@@ -115,7 +118,10 @@ class Status(object):
                in_reply_to_status_id=None,
                truncated=None,
                source=None,
-               now=None):
+               now=None,
+               urls=None,
+               user_mentions=None,
+               hashtags=None):
     '''An object to hold a Twitter status message.
 
     This class is normally instantiated by the twitter.Api class and
@@ -149,6 +155,9 @@ class Status(object):
     self.in_reply_to_status_id = in_reply_to_status_id
     self.truncated = truncated
     self.source = source
+    self.urls = urls
+    self.user_mentions = user_mentions
+    self.hashtags = hashtags
 
   def GetCreatedAt(self):
     '''Get the time this status message was posted.
@@ -467,6 +476,16 @@ class Status(object):
       user = User.NewFromJsonDict(data['user'])
     else:
       user = None
+    urls = None
+    user_mentions = None
+    hashtags = None
+    if 'entities' in data:
+      if 'urls' in data['entities']:
+        urls = [Url.NewFromJsonDict(u) for u in data['entities']['urls']]
+      if 'user_mentions' in data['entities']:
+        user_mentions = [User.NewFromJsonDict(u) for u in data['entities']['user_mentions']]
+      if 'hashtags' in data['entities']:
+        hashtags = [Hashtag.NewFromJsonDict(h) for h in data['entities']['hashtags']]
     return Status(created_at=data.get('created_at', None),
                   favorited=data.get('favorited', None),
                   id=data.get('id', None),
@@ -477,7 +496,10 @@ class Status(object):
                   in_reply_to_status_id=data.get('in_reply_to_status_id', None),
                   truncated=data.get('truncated', None),
                   source=data.get('source', None),
-                  user=user)
+                  user=user,
+                  urls = urls,
+                  user_mentions = user_mentions,
+                  hashtags = hashtags)
 
 
 class User(object):
@@ -1622,6 +1644,45 @@ class DirectMessage(object):
                          id=data.get('id', None),
                          recipient_screen_name=data.get('recipient_screen_name', None))
 
+class Hashtag(object):
+  ''' A class represeinting a twitter hashtag
+  '''
+  def __init__(self,
+               text=None):
+    self.text = text
+
+  @staticmethod
+  def NewFromJsonDict(data):
+    '''Create a new instance based on a JSON dict.
+
+    Args:
+      data: a JSON dict, as converted from the JSON in the twitter API
+    Returns:
+      A twitter.Hashtag instance
+    ''' 
+    return Hashtag(text = data.get('text', None))
+
+class Url(object):
+  ''' A class representing an URL contained in a tweet 
+  '''
+  def __init__(self,
+               url=None,
+               expanded_url=None):
+    self.url = url
+    self.expanded_url = expanded_url
+
+  @staticmethod
+  def NewFromJsonDict(data):
+    '''Create a new instance based on a JSON dict.
+    
+    Args:
+      data: A JSON dict, as converted from the JSON in the twitter API
+    Returns:
+      A twitter.Url instance
+    '''
+    return Url(url=data.get('url', None),
+               expanded_url=data.get('expanded_url', None))
+
 class Api(object):
   '''A python interface into the Twitter API
 
@@ -1805,13 +1866,20 @@ class Api(object):
     self._oauth_consumer      = None
 
   def GetPublicTimeline(self,
-                        since_id=None):
+                        since_id=None,
+                        include_rts=None,
+                        include_entities=None):
     '''Fetch the sequence of public twitter.Status message for all users.
 
     Args:
       since_id:
         Returns only public statuses with an ID greater than
         (that is, more recent than) the specified ID. [optional]
+      include_rts:
+        Specifies whether retweets should be included
+      include_entities:
+        Specifies whether entities should be retrieved for the 
+        individual Status elements
 
     Returns:
       An sequence of twitter.Status instances, one for each message
@@ -1820,6 +1888,10 @@ class Api(object):
 
     if since_id:
       parameters['since_id'] = since_id
+    if include_rts:
+      parameters['include_rts'] = 1
+    if include_entities:
+      parameters['include_entities'] = 1
 
     url  = '%s/statuses/public_timeline.json' % self.base_url
     json = self._FetchUrl(url,  parameters=parameters)
@@ -1996,7 +2068,9 @@ class Api(object):
                       since_id=None,
                       max_id=None,
                       count=None,
-                      page=None):
+                      page=None,
+                      include_rts=None,
+                      include_entities=None):
     '''Fetch the sequence of public Status messages for a single user.
 
     The twitter.Api instance must be authenticated if the user is private.
@@ -2025,6 +2099,11 @@ class Api(object):
       page:
          Specifies the page of results to retrieve. Note: there are
          pagination limits. [optional]
+      include_rts:
+        Specifies whether retweets should be included
+      include_entities:
+        Specifies whether entities should be retrieved for the 
+        individual Status elements
 
     Returns:
       A sequence of Status instances, one for each message up to count
@@ -2066,6 +2145,12 @@ class Api(object):
         parameters['page'] = int(page)
       except:
         raise TwitterError("page must be an integer")
+
+    if include_rts:
+      parameters['include_rts'] = 1
+
+    if include_entities:
+      parameters['include_entities'] = 1
 
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)

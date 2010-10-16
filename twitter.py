@@ -2387,6 +2387,47 @@ class Api(object):
     results.append(self.PostUpdate(lines[-1], **kwargs))
     return results
 
+  def GetUserRetweets(self, count=None, since_id=None, max_id=None, include_entities=False):
+     '''Fetch the sequence of retweets made by a single user.
+
+     The twitter.Api instance must be authenticated.
+
+     Args:
+       count:
+         The number of status messages to retrieve. [Optional]
+       since_id:
+         Returns only public statuses with an ID greater than (that is,
+         more recent than) the specified ID. [Optional]
+       max_id:
+         Returns results with an ID less than (that is, older than) or
+         equal to the specified ID. [Optional]
+       include_entities:
+         If True, each status item returned will include an entities node.
+         [Optional]
+     Returns:
+       A sequence of twitter.Status instances, one for each message up to count
+     '''
+     url = '%s/statuses/retweeted_by_me.json' % self.base_url
+     if not self._oauth_consumer:
+       raise TwitterError("The twitter.Api instance must be authenticated.")
+     parameters = {}
+     if count is not None:
+       try:
+         if int(count) > 100:
+           raise TwitterError("'count' may not be greater than 100")
+       except ValueError:
+         raise TwitterError("'count' must be an integer")
+     if count:
+       parameters['count'] = count
+     if since_id:
+       parameters['since_id'] = since_id
+     if include_entities:
+       parameters['include_entities'] = True
+     json = self._FetchUrl(url, parameters=parameters)
+     data = simplejson.loads(json)
+     self._CheckForTwitterError(data)
+     return [Status.NewFromJsonDict(x) for x in data]
+
   def GetReplies(self, since=None, since_id=None, page=None): 
     '''Get a sequence of status messages representing the 20 most recent
     replies (status updates prefixed with @twitterID) to the authenticating

@@ -18,6 +18,11 @@
  http://code.google.com/p/python-twitter/issues/detail?id=168
  Only cache successful results as suggested by yaemog.
 
+ Issue 111
+ http://code.google.com/p/python-twitter/issues/detail?id=111
+ Added a new GetUserRetweets() call as suggested by yash888
+ Patch given was adjusted to reflect the current code requirements.
+
 2010-09-26
 
  Issue 150

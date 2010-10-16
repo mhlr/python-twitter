@@ -2573,30 +2573,6 @@ class Api(object):
     self._CheckForTwitterError(data)
     return [Status.NewFromJsonDict(x) for x in data]
 
-  def GetStatus(self, statusid, include_entities=True):
-    ''' Retrieves a single status, specified by the statusid parameter.
-
-    Args:
-      statusid:
-        ID of the status to fetch
-      include_entities:
-        If True, each tweet will include a node called "entities,".
-        This node offers a variety of metadata about the tweet in a
-        discreet structure, including: user_mentions, urls, and
-        hashtags. [Optional]
-
-    Returns:
-      A twitter.Status instance representing the tweet specified
-    '''
-    url = '%s/statuses/show/%s.json' % (self.base_url, statusid)
-    parameters = {}
-    if include_entities:
-      parameters['include_entities'] = True
-    json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
-    return Status.NewFromJsonDict(data)
-
   def GetRetweets(self, statusid):
     '''Returns up to 100 of the first retweets of the tweet identified
     by statusid

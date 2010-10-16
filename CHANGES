@@ -36,6 +36,10 @@
  I also updated GetFriendsTimeline() to follow the current
  Twitter API documentation
 
+ Somewhere in the patch frenzy of today an extra GetStatus()
+ def was introduced!?! Luckily it was caught by the tests.
+ wooo tests! \m/
+
 2010-09-26
 
  Issue 150

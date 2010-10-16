@@ -315,8 +315,8 @@ class ApiTest(unittest.TestCase):
 
   def setUp(self):
     self._urllib = MockUrllib()
-    api = twitter.Api(username='CONSUMER_KEY',
-                      password='CONSUMER_SECRET',
+    api = twitter.Api(consumer_key='CONSUMER_KEY',
+                      consumer_secret='CONSUMER_SECRET',
                       access_token_key='OAUTH_TOKEN',
                       access_token_secret='OAUTH_SECRET', 
                       cache=None)

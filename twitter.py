@@ -2122,9 +2122,10 @@ class Api(object):
   def GetFriendsTimeline(self,
                          user=None,
                          count=None,
-                         since=None,
+                         page=None,
                          since_id=None,
-                         retweets=False):
+                         retweets=None,
+                         include_entities=None):
     '''Fetch the sequence of twitter.Status messages for a user's friends
 
     The twitter.Api instance must be authenticated if the user is private.
@@ -2136,40 +2137,47 @@ class Api(object):
         user set in the twitter.Api instance will be used.  [Optional]
       count:
         Specifies the number of statuses to retrieve. May not be
-        greater than 200. [Optional]
-      since:
-        Narrows the returned results to just those statuses created
-        after the specified HTTP-formatted date. [Optional]
+        greater than 100. [Optional]
+      page:
+         Specifies the page of results to retrieve.
+         Note: there are pagination limits. [Optional]
       since_id:
         Returns only public statuses with an ID greater than (that is,
         more recent than) the specified ID. [Optional]
-
+      retweets:
+        If True, the timeline will contain native retweets. [Optional]
+      include_entities:
+        Specifies whether entities should be retrieved for the
+        individual Status elements. [optional]
     Returns:
       A sequence of twitter.Status instances, one for each message
     '''
     if not user and not self._oauth_consumer:
       raise TwitterError("User must be specified if API is not authenticated.")
-    url = '%s/statuses' % self.base_url
-    if retweets:
-      src = 'home_timeline'
-    else:
-      src = 'friends_timeline'
+    url = '%s/statuses/friends_timeline' % self.base_url
     if user:
-      url = '%s/%s/%s.json' % (url, src, user)
+      url = '%s/%s.json' % (url, user)
     else:
-      url = '%s/%s.json' % (url, src)
+      url = '%s.json' % url
     parameters = {}
     if count is not None:
       try:
-        if int(count) > 200:
-          raise TwitterError("'count' may not be greater than 200")
+        if int(count) > 100:
+          raise TwitterError("'count' may not be greater than 100")
       except ValueError:
         raise TwitterError("'count' must be an integer")
       parameters['count'] = count
-    if since:
-      parameters['since'] = since
+    if page is not None:
+      try:
+        parameters['page'] = int(page)
+      except ValueError:
+        raise TwitterError("'page' must be an integer")
     if since_id:
       parameters['since_id'] = since_id
+    if retweets:
+      parameters['include_rts'] = True
+    if include_entities:
+      parameters['include_entities'] = True
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)

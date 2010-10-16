@@ -26,6 +26,12 @@
  Issue 110
  Added a VerifyCredentials() sample call to the README example
 
+ Issue 105
+ Added support for the page parameter to GetFriendsTimeline()
+ as requested by jauderho.
+ I also updated GetFriendsTimeline() to follow the current
+ Twitter API documentation
+
 2010-09-26
 
  Issue 150

@@ -14,6 +14,10 @@
  http://code.google.com/p/python-twitter/issues/detail?id=169
  Patch by yaemog which adds missing Trends support.
 
+ Issue 168
+ http://code.google.com/p/python-twitter/issues/detail?id=168
+ Only cache successful results as suggested by yaemog.
+
 2010-09-26
 
  Issue 150

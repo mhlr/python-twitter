@@ -3322,10 +3322,10 @@ class Api(object):
         try:
           response = opener.open(url, encoded_post_data)
           url_data = self._DecompressGzippedResponse(response)
+          self._cache.Set(key, url_data)
         except urllib2.HTTPError, e:
           print e
         opener.close()
-        self._cache.Set(key, url_data)
       else:
         url_data = self._cache.Get(key)
 

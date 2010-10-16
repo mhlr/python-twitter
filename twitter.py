@@ -30,6 +30,7 @@ import sys
 import tempfile
 import textwrap
 import time
+import calendar
 import urllib
 import urllib2
 import urlparse
@@ -1662,6 +1663,31 @@ class Hashtag(object):
     ''' 
     return Hashtag(text = data.get('text', None))
 
+class Trend(object):
+  ''' A class representing a trending topic
+  '''
+  def __init__(self, name=None, query=None, timestamp=None):
+    self.name = name
+    self.query = query
+    self.timestamp = timestamp
+
+  def __str__(self):
+    return 'Name: %s\nQuery: %s\nTimestamp: %s\n' % (self.name, self.query, self.timestamp)
+
+  @staticmethod
+  def NewFromJsonDict(data, timestamp = None):
+    '''Create a new instance based on a JSON dict
+    
+    Args:
+      data: A JSON dict
+      timestamp: Gets set as the timestamp property of the new object
+    Returns:
+      A twitter.Trend object
+    '''
+    return Trend(name=data.get('name', None),
+                 query=data.get('query', None),
+                 timestamp=timestamp)
+
 class Url(object):
   ''' A class representing an URL contained in a tweet 
   '''
@@ -2004,6 +2030,94 @@ class Api(object):
 
     # Return built list of statuses
     return results # [Status.NewFromJsonDict(x) for x in data['results']]
+
+  def GetTrendsCurrent(self, exclude=None):
+    '''Get the current top 10 trending topics
+
+    Args:
+      exclude: Appends the exclude parameter as a request parameter.
+               Currently only exclude=hashtags is supported.
+    '''
+    parameters = {}
+    if exclude:
+      parameters['exclude'] = exclude
+    url = '%s/trends/current.json' % self.base_url
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    trends = []
+
+    for t in data['trends']:
+      for item in data['trends'][t]:
+        trends.append(Trend.NewFromJsonDict(item, timestamp = t))
+    return trends
+
+  def GetTrendsDaily(self, exclude=None, startdate=None):
+    '''Get the current top 20 trending topics for each hour in a given day
+
+    Args:
+      startdate: The start date for the report.
+                 Should be in the format YYYY-MM-DD.
+      exclude: Appends the exclude parameter as a request parameter.
+               Currently only exclude=hashtags is supported.
+    Returns:
+      A list with 24 entries. Each entry contains the twitter.
+      Trend elements that were trending at the corresponding hour of the day.
+    '''
+    parameters = {}
+    if exclude:
+      parameters['exclude'] = exclude
+    if not startdate:
+      startdate = time.strftime('%Y-%m-%d', time.gmtime())
+    parameters['date'] = startdate
+    url = '%s/trends/daily.json' % self.base_url
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    trends = []
+    for i in xrange(24):
+      trends.append(None)
+    for t in data['trends']:
+      idx = int(time.strftime('%H', time.strptime(t, '%Y-%m-%d %H:%M')))
+      trends[idx] = [Trend.NewFromJsonDict(x, timestamp = t)
+        for x in data['trends'][t]]
+    return trends
+
+  def GetTrendsWeekly(self, exclude=None, startdate=None):
+    '''Get the top 30 trending topics for each day in a given week.
+
+    Args:
+      startdate: The start date for the report.
+                 Should be in the format YYYY-MM-DD.
+      exclude: Appends the exclude parameter as a request parameter.
+               Currently only exclude=hashtags is supported.
+    Returns:
+      A list of length 7. Each entry contains the twitter.
+      Trend elements of trending topics for the corrsponding day of the week
+    '''
+    parameters = {}
+    if exclude:
+      parameters['exclude'] = exclude
+    if not startdate:
+      startdate = time.strftime('%Y-%m-%d', time.gmtime())
+    parameters['date'] = startdate
+    url = '%s/trends/weekly.json' % self.base_url
+    json = self._FetchUrl(url, parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+    trends = []
+    for i in xrange(7):
+      trends.append(None)
+    # use the epochs of the dates as keys for a dictionary
+    times = dict([(calendar.timegm(time.strptime(t, '%Y-%m-%d')),t)
+      for t in data['trends']])
+    cnt = 0
+    # create the resulting structure ordered by the epochs of the dates
+    for e in sorted(times.keys()):
+      trends[cnt] = [Trend.NewFromJsonDict(x, timestamp = times[e])
+        for x in data['trends'][times[e]]]
+      cnt +=1
+    return trends
 
   def GetFriendsTimeline(self,
                          user=None,

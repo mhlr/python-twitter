@@ -10,6 +10,10 @@
  http://code.google.com/r/colinthehowe-python-twitter-tests/source/detail?r=cab8e32d7a9c34c66d2e75eebc7a1ba6e1eac8ce
  http://code.google.com/r/colinthehowe-python-twitter-tests/source/detail?r=b434d9e5dd7b989ae24483477e3f00b1ad362cc5
 
+ Issue 169
+ http://code.google.com/p/python-twitter/issues/detail?id=169
+ Patch by yaemog which adds missing Trends support.
+
 2010-09-26
 
  Issue 150

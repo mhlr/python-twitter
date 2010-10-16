@@ -1,4 +1,11 @@
-2010-08-26
+2010-10-16
+
+ Fixed bad date in previous CHANGES entry
+ 
+ Fixed source of the python-oauth2 library we use: from brosner
+ to simplegeo
+
+2010-09-26
 
  Issue 150
  http://code.google.com/p/python-twitter/issues/detail?id=150
@@ -50,7 +57,7 @@
    DestroySubscription(self, owner, list)
    GetSubscriptions(self, user, cursor=-1)
    GetLists(self, user, cursor=-1)
-   
+
 2010-08-24
 
  Fixed introduced bug in the Destroy* and Create* API calls

@@ -20,8 +20,8 @@ it even easier for Python programmers to use.
 Install the dependencies:
 
   http://cheeseshop.python.org/pypi/simplejson
-  http://github.com/brosner/python-oauth2
   http://code.google.com/p/httplib2/
+  http://github.com/simplegeo/python-oauth2
 
 Download the latest python-twitter library from:
 

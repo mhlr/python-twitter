@@ -23,6 +23,9 @@
  Added a new GetUserRetweets() call as suggested by yash888
  Patch given was adjusted to reflect the current code requirements.
 
+ Issue 110
+ Added a VerifyCredentials() sample call to the README example
+
 2010-09-26
 
  Issue 150

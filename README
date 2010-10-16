@@ -111,6 +111,11 @@ supported moving forward.
                         access_token_key='access_token',
                         access_token_secret='access_token_secret')
 
+To see if your credentials are successful:
+ NOTE - much more than the small sample given here will print
+
+  >>> print api.VerifyCredentials()
+  {"id": 16133, "location": "Philadelphia", "name": "bear"}
 
 To fetch the most recently posted public Twitter status messages:
 

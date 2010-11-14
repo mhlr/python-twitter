@@ -17,7 +17,7 @@
 '''A library that provides a Python interface to the Twitter API'''
 
 __author__ = 'python-twitter@googlegroups.com'
-__version__ = '0.9-devel'
+__version__ = '0.8'
 
 
 import base64
@@ -106,6 +106,10 @@ class Status(object):
     status.urls
     status.user_mentions
     status.hashtags
+    status.geo
+    status.place
+    status.coordinates
+    status.contributors
   '''
   def __init__(self,
                created_at=None,
@@ -122,7 +126,11 @@ class Status(object):
                now=None,
                urls=None,
                user_mentions=None,
-               hashtags=None):
+               hashtags=None,
+               geo=None,
+               place=None,
+               coordinates=None,
+               contributors=None):
     '''An object to hold a Twitter status message.
 
     This class is normally instantiated by the twitter.Api class and
@@ -132,23 +140,23 @@ class Status(object):
 
     Args:
       created_at:
-        The time this status message was posted. [Optiona]
+        The time this status message was posted. [Optional]
       favorited:
-        Whether this is a favorite of the authenticated user. [Optiona]
+        Whether this is a favorite of the authenticated user. [Optional]
       id:
-        The unique id of this status message. [Optiona]
+        The unique id of this status message. [Optional]
       text:
-        The text of this status message. [Optiona]
+        The text of this status message. [Optional]
       location:
-        the geolocation string associated with this message. [Optiona]
+        the geolocation string associated with this message. [Optional]
       relative_created_at:
-        A human readable string representing the posting time. [Optiona]
+        A human readable string representing the posting time. [Optional]
       user:
         A twitter.User instance representing the person posting the
-        message. [Optiona]
+        message. [Optional]
       now:
         The current time, if the client choses to set it.
-        Defaults to the wall clock time. [Optiona]
+        Defaults to the wall clock time. [Optional]
     '''
     self.created_at = created_at
     self.favorited = favorited
@@ -165,6 +173,10 @@ class Status(object):
     self.urls = urls
     self.user_mentions = user_mentions
     self.hashtags = hashtags
+    self.geo = geo
+    self.place = place
+    self.coordinates = coordinates
+    self.contributors = contributors
 
   def GetCreatedAt(self):
     '''Get the time this status message was posted.
@@ -403,6 +415,41 @@ class Status(object):
   now = property(GetNow, SetNow,
                  doc='The wallclock time for this status instance.')
 
+  def GetGeo(self):
+    return self._geo
+
+  def SetGeo(self, geo):
+    self._geo = geo
+
+  geo = property(GetGeo, SetGeo,
+                 doc='')
+
+  def GetPlace(self):
+    return self._place
+
+  def SetPlace(self, place):
+    self._place = place
+
+  place = property(GetPlace, SetPlace,
+                   doc='')
+
+  def GetCoordinates(self):
+    return self._coordinates
+
+  def SetCoordinates(self, coordinates):
+    self._coordinates = coordinates
+
+  coordinates = property(GetCoordinates, SetCoordinates,
+                         doc='')
+
+  def GetContributors(self):
+    return self._contributors
+
+  def SetContributors(self, contributors):
+    self._contributors = contributors
+
+  contributors = property(GetContributors, SetContributors,
+                          doc='')
 
   def __ne__(self, other):
     return not self.__eq__(other)
@@ -420,7 +467,11 @@ class Status(object):
              self.in_reply_to_status_id == other.in_reply_to_status_id and \
              self.truncated == other.truncated and \
              self.favorited == other.favorited and \
-             self.source == other.source
+             self.source == other.source and \
+             self.geo == other.geo and \
+             self.place == other.place and \
+             self.coordinates == other.coordinates and \
+             self.contributors == other.contributors
     except AttributeError:
       return False
 
@@ -475,6 +526,14 @@ class Status(object):
       data['favorited'] = self.favorited
     if self.source:
       data['source'] = self.source
+    if self.geo:
+      data['geo'] = self.geo
+    if self.place:
+      data['place'] = self.place
+    if self.coordinates:
+      data['coordinates'] = self.coordinates
+    if self.contributors:
+      data['contributors'] = self.contributors
     return data
 
   @staticmethod
@@ -511,9 +570,13 @@ class Status(object):
                   truncated=data.get('truncated', None),
                   source=data.get('source', None),
                   user=user,
-                  urls = urls,
-                  user_mentions = user_mentions,
-                  hashtags = hashtags)
+                  urls=urls,
+                  user_mentions=user_mentions,
+                  hashtags=hashtags,
+                  geo=data.get('geo', None),
+                  place=data.get('place', None),
+                  coordinates=data.get('coordinates', None),
+                  contributors=data.get('contributors', None))
 
 
 class User(object):
@@ -542,6 +605,7 @@ class User(object):
     user.followers_count
     user.friends_count
     user.favourites_count
+    user.geo_enabled
   '''
   def __init__(self,
                id=None,
@@ -564,7 +628,8 @@ class User(object):
                statuses_count=None,
                favourites_count=None,
                url=None,
-               status=None):
+               status=None,
+               geo_enabled=None):
     self.id = id
     self.name = name
     self.screen_name = screen_name
@@ -586,7 +651,7 @@ class User(object):
     self.favourites_count = favourites_count
     self.url = url
     self.status = status
-
+    self.geo_enabled = geo_enabled
 
   def GetId(self):
     '''Get the unique id of this user.
@@ -916,6 +981,26 @@ class User(object):
   favourites_count = property(GetFavouritesCount, SetFavouritesCount,
                               doc='The number of favourites for this user.')
 
+  def GetGeoEnabled(self):
+    '''Get the setting of geo_enabled for this user.
+
+    Returns:
+      True/False if Geo tagging is enabled
+    '''
+    return self._geo_enabled
+
+  def SetGeoEnabled(self, geo_enabled):
+    '''Set the latest twitter.geo_enabled of this user.
+
+    Args:
+      geo_enabled:
+        True/False if Geo tagging is to be enabled
+    '''
+    self._geo_enabled = geo_enabled
+
+  geo_enabled = property(GetGeoEnabled, SetGeoEnabled,
+                         doc='The value of twitter.geo_enabled for this user.')
+
   def __ne__(self, other):
     return not self.__eq__(other)
 
@@ -942,7 +1027,8 @@ class User(object):
              self.followers_count == other.followers_count and \
              self.favourites_count == other.favourites_count and \
              self.friends_count == other.friends_count and \
-             self.status == other.status
+             self.status == other.status and \
+             self.geo_enabled == other.geo_enabled
     except AttributeError:
       return False
 
@@ -1013,6 +1099,8 @@ class User(object):
       data['statuses_count'] = self.statuses_count
     if self.favourites_count:
       data['favourites_count'] = self.favourites_count
+    if self.geo_enabled:
+      data['geo_enabled'] = self.geo_enabled
     return data
 
   @staticmethod
@@ -1050,7 +1138,8 @@ class User(object):
                 utc_offset = data.get('utc_offset', None),
                 time_zone = data.get('time_zone', None),
                 url=data.get('url', None),
-                status=status)
+                status=status,
+                geo_enabled=data.get('geo_enabled', None))
 
 class List(object):
   '''A class representing the List structure used by the twitter API.
@@ -2019,7 +2108,7 @@ class Api(object):
     return results
 
   def GetSearch(self,
-                term,
+                term=None,
                 geocode=None,
                 since_id=None,
                 per_page=15,
@@ -2031,7 +2120,7 @@ class Api(object):
 
     Args:
       term:
-        term to search by.
+        term to search by. Optional if you include geocode.
       since_id:
         Returns results with an ID greater than (that is, more recent
         than) the specified ID. There are limits to the number of
@@ -2066,17 +2155,19 @@ class Api(object):
     if since_id:
       parameters['since_id'] = since_id
 
-    if not term:
+    if term is None and geocode is None:
       return []
 
-    parameters['q'] = term
+    if term is not None:
+      parameters['q'] = term
+
+    if geocode is not None:
+      parameters['geocode'] = ','.join(map(str, geocode))
+
     parameters['show_user'] = show_user
     parameters['lang'] = lang
     parameters['rpp'] = per_page
     parameters['page'] = page
-
-    if geocode is not None:
-      parameters['geocode'] = ','.join(map(str, geocode))
 
     # Make and send requests
     url  = 'http://search.twitter.com/search.json'

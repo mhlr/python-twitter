@@ -1,3 +1,24 @@
+2010-11-14
+
+ Setting version to 0.8 for a bit as having a branch for this is
+ really overkill, i'll just take DeWitt advice and tag it when
+ the release is out the door
+
+ Issue 175
+ http://code.google.com/p/python-twitter/issues/detail?id=175
+ Added geo_enabled to User class - basic parts of patch provided
+ by adam.aviv with other bits added by me to allow it to pass tests
+
+ Issue 174
+ http://code.google.com/p/python-twitter/issues/detail?id=174
+ Added parts of adam.aviv's patch - the bits that add new field items
+ to the Status class.
+
+ Issue 159
+ http://code.google.com/p/python-twitter/issues/detail?id=159
+ Added patch form adam.aviv to make the term parameter for GetSearch()
+ optional if geocode parameter is supplied
+
 2010-11-03
 
  Ran pydoc to generate docs

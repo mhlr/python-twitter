@@ -1,0 +1,11 @@
+CHANGES
+COPYING
+LICENSE
+NOTICE
+README
+twitter.py
+setup.py
+twitter_test.py
+recursive-include examples
+recursive-include doc
+prune .DS_Store

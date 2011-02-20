@@ -1,3 +1,12 @@
+2011-02-20
+
+ Added retweeted to Status class
+ Fixed Status class to return Hashtags list in AsDict() call
+
+ Issue 185
+ http://code.google.com/p/python-twitter/issues/detail?id=185
+ Added retweeted_status to Status class - patch by edward.hades
+
 2010-12-21
 
  Setting version to 0.8.1

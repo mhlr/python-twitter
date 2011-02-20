@@ -586,7 +586,6 @@ class Status(object):
     urls = None
     user_mentions = None
     hashtags = None
-    print simplejson.dumps(data, indent=2)
     if 'entities' in data:
       if 'urls' in data['entities']:
         urls = [Url.NewFromJsonDict(u) for u in data['entities']['urls']]
@@ -3229,7 +3228,6 @@ class Api(object):
     json = self._FetchUrl(url, parameters=parameters)
     data = simplejson.loads(json)
     self._CheckForTwitterError(data)
-    print data
     return [List.NewFromJsonDict(x) for x in data['lists']]
 
   def GetLists(self, user, cursor=-1):

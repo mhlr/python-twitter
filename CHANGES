@@ -7,6 +7,10 @@
  http://code.google.com/p/python-twitter/issues/detail?id=185
  Added retweeted_status to Status class - patch by edward.hades
 
+ Issue 183
+ http://code.google.com/p/python-twitter/issues/detail?id=183
+ Removed errant print statement - reported by ProgVal
+
 2010-12-21
 
  Setting version to 0.8.1

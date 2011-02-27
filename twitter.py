@@ -2652,6 +2652,11 @@ class Api(object):
        parameters['since_id'] = since_id
      if include_entities:
        parameters['include_entities'] = True
+     if max_id:
+       try:
+         parameters['max_id'] = long(max_id)
+       except:
+         raise TwitterError("max_id must be an integer")
      json = self._FetchUrl(url, parameters=parameters)
      data = self._ParseAndCheckTwitter(json)
      return [Status.NewFromJsonDict(x) for x in data]

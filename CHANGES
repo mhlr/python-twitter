@@ -1,8 +1,11 @@
 2011-02-26
 
+ Issue 166
+ http://code.google.com/p/python-twitter/issues/detail?id=166
  Added a basic, but sadly needed, check when parsing the json
  returned by Twitter as Twitter has a habit of returning the
  failwhale HTML page for a json api call :(
+ Patch (with minor tweaks) by adam.aviv
 
  Issue 187
  http://code.google.com/p/python-twitter/issues/detail?id=187

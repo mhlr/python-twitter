@@ -3478,7 +3478,12 @@ class Api(object):
       data = simplejson.loads(json)
       self._CheckForTwitterError(data)
     except ValueError:
-      data = {}
+      if "<title>Twitter / Over capacity</title>" in json:
+        raise TwitterError("Capacity Error")
+      if "<title>Twitter / Error</title>" in json:
+        raise TwitterError("Technical Error")
+      raise TwitterError("json decoding")
+
     return data
 
   def _CheckForTwitterError(self, data):

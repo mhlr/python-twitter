@@ -2108,10 +2108,7 @@ class Api(object):
 
     url  = '%s/statuses/public_timeline.json' % self.base_url
     json = self._FetchUrl(url,  parameters=parameters)
-    data = simplejson.loads(json)
-
-    self._CheckForTwitterError(data)
-
+    data = self._ParseAndCheckTwitter(json)
     return [Status.NewFromJsonDict(x) for x in data]
 
   def FilterPublicTimeline(self,
@@ -2208,9 +2205,7 @@ class Api(object):
     # Make and send requests
     url  = 'http://search.twitter.com/search.json'
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
 
     results = []
 
@@ -2242,10 +2237,10 @@ class Api(object):
     parameters = {}
     if exclude:
       parameters['exclude'] = exclude
-    url = '%s/trends/current.json' % self.base_url
+    url  = '%s/trends/current.json' % self.base_url
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
+
     trends = []
 
     for t in data['trends']:
@@ -2274,11 +2269,12 @@ class Api(object):
     if not startdate:
       startdate = time.strftime('%Y-%m-%d', time.gmtime())
     parameters['date'] = startdate
-    url = '%s/trends/daily.json' % self.base_url
+    url  = '%s/trends/daily.json' % self.base_url
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
+
     trends = []
+
     for i in xrange(24):
       trends.append(None)
     for t in data['trends']:
@@ -2307,11 +2303,12 @@ class Api(object):
     if not startdate:
       startdate = time.strftime('%Y-%m-%d', time.gmtime())
     parameters['date'] = startdate
-    url = '%s/trends/weekly.json' % self.base_url
+    url  = '%s/trends/weekly.json' % self.base_url
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
+
     trends = []
+
     for i in xrange(7):
       trends.append(None)
     # use the epochs of the dates as keys for a dictionary
@@ -2391,8 +2388,7 @@ class Api(object):
     if include_entities:
       parameters['include_entities'] = True
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return [Status.NewFromJsonDict(x) for x in data]
 
   def GetUserTimeline(self,
@@ -2493,8 +2489,7 @@ class Api(object):
       parameters['include_entities'] = 1
 
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return [Status.NewFromJsonDict(x) for x in data]
 
   def GetStatus(self, id):
@@ -2515,10 +2510,9 @@ class Api(object):
         long(id)
     except:
       raise TwitterError("id must be an long integer")
-    url = '%s/statuses/show/%s.json' % (self.base_url, id)
+    url  = '%s/statuses/show/%s.json' % (self.base_url, id)
     json = self._FetchUrl(url)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return Status.NewFromJsonDict(data)
 
   def DestroyStatus(self, id):
@@ -2539,10 +2533,9 @@ class Api(object):
         long(id)
     except:
       raise TwitterError("id must be an integer")
-    url = '%s/statuses/destroy/%s.json' % (self.base_url, id)
+    url  = '%s/statuses/destroy/%s.json' % (self.base_url, id)
     json = self._FetchUrl(url, post_data={'id': id})
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return Status.NewFromJsonDict(data)
 
   def PostUpdate(self, status, in_reply_to_status_id=None):
@@ -2581,8 +2574,7 @@ class Api(object):
     if in_reply_to_status_id:
       data['in_reply_to_status_id'] = in_reply_to_status_id
     json = self._FetchUrl(url, post_data=data)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return Status.NewFromJsonDict(data)
 
   def PostUpdates(self, status, continuation=None, **kwargs):
@@ -2661,8 +2653,7 @@ class Api(object):
      if include_entities:
        parameters['include_entities'] = True
      json = self._FetchUrl(url, parameters=parameters)
-     data = simplejson.loads(json)
-     self._CheckForTwitterError(data)
+     data = self._ParseAndCheckTwitter(json)
      return [Status.NewFromJsonDict(x) for x in data]
 
   def GetReplies(self, since=None, since_id=None, page=None):
@@ -2696,8 +2687,7 @@ class Api(object):
     if page:
       parameters['page'] = page
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return [Status.NewFromJsonDict(x) for x in data]
 
   def GetRetweets(self, statusid):
@@ -2716,8 +2706,7 @@ class Api(object):
     url = '%s/statuses/retweets/%s.json?include_entities=true&include_rts=true' % (self.base_url, statusid)
     parameters = {}
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return [Status.NewFromJsonDict(s) for s in data]
 
   def GetFriends(self, user=None, cursor=-1):
@@ -2742,8 +2731,7 @@ class Api(object):
     parameters = {}
     parameters['cursor'] = cursor
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return [User.NewFromJsonDict(x) for x in data['users']]
 
   def GetFriendIDs(self, user=None, cursor=-1):
@@ -2767,8 +2755,7 @@ class Api(object):
       parameters = {}
       parameters['cursor'] = cursor
       json = self._FetchUrl(url, parameters=parameters)
-      data = simplejson.loads(json)
-      self._CheckForTwitterError(data)
+      data = self._ParseAndCheckTwitter(json)
       return data
 
   def GetFollowerIDs(self, userid=None, cursor=-1):
@@ -2785,8 +2772,7 @@ class Api(object):
     if userid:
       parameters['user_id'] = userid
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return data
 
   def GetFollowers(self, page=None):
@@ -2809,8 +2795,7 @@ class Api(object):
     if page:
       parameters['page'] = page
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return [User.NewFromJsonDict(x) for x in data]
 
   def GetFeatured(self):
@@ -2821,10 +2806,9 @@ class Api(object):
     Returns:
       A sequence of twitter.User instances
     '''
-    url = '%s/statuses/featured.json' % self.base_url
+    url  = '%s/statuses/featured.json' % self.base_url
     json = self._FetchUrl(url)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return [User.NewFromJsonDict(x) for x in data]
 
   def UsersLookup(self, user_id=None, screen_name=None, users=None):
@@ -2867,8 +2851,7 @@ class Api(object):
     if screen_name:
       parameters['screen_name'] = ','.join(screen_name)
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return [User.NewFromJsonDict(u) for u in data]
 
   def GetUser(self, user):
@@ -2882,10 +2865,9 @@ class Api(object):
     Returns:
       A twitter.User instance representing that user
     '''
-    url = '%s/users/show/%s.json' % (self.base_url, user)
+    url  = '%s/users/show/%s.json' % (self.base_url, user)
     json = self._FetchUrl(url)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return User.NewFromJsonDict(data)
 
   def GetDirectMessages(self, since=None, since_id=None, page=None):
@@ -2921,8 +2903,7 @@ class Api(object):
     if page:
       parameters['page'] = page
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return [DirectMessage.NewFromJsonDict(x) for x in data]
 
   def PostDirectMessage(self, user, text):
@@ -2939,11 +2920,10 @@ class Api(object):
     '''
     if not self._oauth_consumer:
       raise TwitterError("The twitter.Api instance must be authenticated.")
-    url = '%s/direct_messages/new.json' % self.base_url
+    url  = '%s/direct_messages/new.json' % self.base_url
     data = {'text': text, 'user': user}
     json = self._FetchUrl(url, post_data=data)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return DirectMessage.NewFromJsonDict(data)
 
   def DestroyDirectMessage(self, id):
@@ -2959,10 +2939,9 @@ class Api(object):
     Returns:
       A twitter.DirectMessage instance representing the message destroyed
     '''
-    url = '%s/direct_messages/destroy/%s.json' % (self.base_url, id)
+    url  = '%s/direct_messages/destroy/%s.json' % (self.base_url, id)
     json = self._FetchUrl(url, post_data={'id': id})
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return DirectMessage.NewFromJsonDict(data)
 
   def CreateFriendship(self, user):
@@ -2975,10 +2954,9 @@ class Api(object):
     Returns:
       A twitter.User instance representing the befriended user.
     '''
-    url = '%s/friendships/create/%s.json' % (self.base_url, user)
+    url  = '%s/friendships/create/%s.json' % (self.base_url, user)
     json = self._FetchUrl(url, post_data={'user': user})
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return User.NewFromJsonDict(data)
 
   def DestroyFriendship(self, user):
@@ -2991,10 +2969,9 @@ class Api(object):
     Returns:
       A twitter.User instance representing the discontinued friend.
     '''
-    url = '%s/friendships/destroy/%s.json' % (self.base_url, user)
+    url  = '%s/friendships/destroy/%s.json' % (self.base_url, user)
     json = self._FetchUrl(url, post_data={'user': user})
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return User.NewFromJsonDict(data)
 
   def CreateFavorite(self, status):
@@ -3008,10 +2985,9 @@ class Api(object):
     Returns:
       A twitter.Status instance representing the newly-marked favorite.
     '''
-    url = '%s/favorites/create/%s.json' % (self.base_url, status.id)
+    url  = '%s/favorites/create/%s.json' % (self.base_url, status.id)
     json = self._FetchUrl(url, post_data={'id': status.id})
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return Status.NewFromJsonDict(data)
 
   def DestroyFavorite(self, status):
@@ -3025,10 +3001,9 @@ class Api(object):
     Returns:
       A twitter.Status instance representing the newly-unmarked favorite.
     '''
-    url = '%s/favorites/destroy/%s.json' % (self.base_url, status.id)
+    url  = '%s/favorites/destroy/%s.json' % (self.base_url, status.id)
     json = self._FetchUrl(url, post_data={'id': status.id})
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return Status.NewFromJsonDict(data)
 
   def GetFavorites(self,
@@ -3059,10 +3034,7 @@ class Api(object):
       url = '%s/favorites.json' % self.base_url
 
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-
-    self._CheckForTwitterError(data)
-
+    data = self._ParseAndCheckTwitter(json)
     return [Status.NewFromJsonDict(x) for x in data]
 
   def GetMentions(self,
@@ -3105,10 +3077,7 @@ class Api(object):
       parameters['page'] = page
 
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-
-    self._CheckForTwitterError(data)
-
+    data = self._ParseAndCheckTwitter(json)
     return [Status.NewFromJsonDict(x) for x in data]
 
   def CreateList(self, user, name, mode=None, description=None):
@@ -3137,8 +3106,7 @@ class Api(object):
     if description is not None:
       parameters['description'] = description
     json = self._FetchUrl(url, post_data=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return List.NewFromJsonDict(data)
 
   def DestroyList(self, user, id):
@@ -3154,10 +3122,9 @@ class Api(object):
     Returns:
       A twitter.List instance representing the removed list.
     '''
-    url = '%s/%s/lists/%s.json' % (self.base_url, user, id)
+    url  = '%s/%s/lists/%s.json' % (self.base_url, user, id)
     json = self._FetchUrl(url, post_data={'_method': 'DELETE'})
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return List.NewFromJsonDict(data)
 
   def CreateSubscription(self, owner, list):
@@ -3174,10 +3141,9 @@ class Api(object):
     Returns:
       A twitter.List instance representing the list subscribed to
     '''
-    url = '%s/%s/%s/subscribers.json' % (self.base_url, owner, list)
+    url  = '%s/%s/%s/subscribers.json' % (self.base_url, owner, list)
     json = self._FetchUrl(url, post_data={'list_id': list})
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return List.NewFromJsonDict(data)
 
   def DestroySubscription(self, owner, list):
@@ -3195,10 +3161,9 @@ class Api(object):
     Returns:
       A twitter.List instance representing the removed list.
     '''
-    url = '%s/%s/%s/subscribers.json' % (self.base_url, owner, list)
+    url  = '%s/%s/%s/subscribers.json' % (self.base_url, owner, list)
     json = self._FetchUrl(url, post_data={'_method': 'DELETE', 'list_id': list})
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return List.NewFromJsonDict(data)
 
   def GetSubscriptions(self, user, cursor=-1):
@@ -3226,8 +3191,7 @@ class Api(object):
     parameters['cursor'] = cursor
 
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return [List.NewFromJsonDict(x) for x in data['lists']]
 
   def GetLists(self, user, cursor=-1):
@@ -3257,8 +3221,7 @@ class Api(object):
     parameters['cursor'] = cursor
 
     json = self._FetchUrl(url, parameters=parameters)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return [List.NewFromJsonDict(x) for x in data['lists']]
 
   def GetUserByEmail(self, email):
@@ -3273,8 +3236,7 @@ class Api(object):
     '''
     url = '%s/users/show.json?email=%s' % (self.base_url, email)
     json = self._FetchUrl(url)
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return User.NewFromJsonDict(data)
 
   def VerifyCredentials(self):
@@ -3294,8 +3256,7 @@ class Api(object):
         return None
       else:
         raise http_error
-    data = simplejson.loads(json)
-    self._CheckForTwitterError(data)
+    data = self._ParseAndCheckTwitter(json)
     return User.NewFromJsonDict(data)
 
   def SetCache(self, cache):
@@ -3380,10 +3341,7 @@ class Api(object):
     '''
     url  = '%s/account/rate_limit_status.json' % self.base_url
     json = self._FetchUrl(url, no_cache=True)
-    data = simplejson.loads(json)
-
-    self._CheckForTwitterError(data)
-
+    data = self._ParseAndCheckTwitter(json)
     return data
 
   def MaximumHitFrequency(self):
@@ -3399,20 +3357,23 @@ class Api(object):
     reset_time  = rate_status.get('reset_time', None)
     limit       = rate_status.get('remaining_hits', None)
 
-    if reset_time and limit:
+    if reset_time:
       # put the reset time into a datetime object
       reset = datetime.datetime(*rfc822.parsedate(reset_time)[:7])
 
       # find the difference in time between now and the reset time + 1 hour
       delta = reset + datetime.timedelta(hours=1) - datetime.datetime.utcnow()
 
+      if not limit:
+          return int(delta.seconds)
+
       # determine the minimum number of seconds allowed as a regular interval
-      max_frequency = int(delta.seconds / limit)
+      max_frequency = int(delta.seconds / limit) + 1
 
       # return the number of seconds
       return max_frequency
 
-    return 0
+    return 60
 
   def _BuildUrl(self, url, path_elements=None, extra_params=None):
     # Break url into consituent parts
@@ -3502,6 +3463,18 @@ class Api(object):
       return None
     else:
       return urllib.urlencode(dict([(k, self._Encode(v)) for k, v in post_data.items()]))
+
+  def _ParseAndCheckTwitter(self, json):
+    """Try and parse the JSON returned from Twitter and return
+    an empty dictionary if there is any error. This is a purely
+    defensive check because during some Twitter network outages
+    it will return an HTML failwhale page."""
+    try:
+      data = simplejson.loads(json)
+      self._CheckForTwitterError(data)
+    except ValueError:
+      data = {}
+    return data
 
   def _CheckForTwitterError(self, data):
     """Raises a TwitterError if twitter returns an error message.

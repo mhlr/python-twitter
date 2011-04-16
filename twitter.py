@@ -667,6 +667,10 @@ class User(object):
     user.friends_count
     user.favourites_count
     user.geo_enabled
+    user.verified
+    user.lang
+    user.notifications
+    user.contributors_enabled
   '''
   def __init__(self,
                id=None,
@@ -690,7 +694,11 @@ class User(object):
                favourites_count=None,
                url=None,
                status=None,
-               geo_enabled=None):
+               geo_enabled=None,
+               verified=None,
+               lang=None,
+               notifications=None,
+               contributors_enabled=None):
     self.id = id
     self.name = name
     self.screen_name = screen_name
@@ -713,6 +721,10 @@ class User(object):
     self.url = url
     self.status = status
     self.geo_enabled = geo_enabled
+    self.verified = verified
+    self.lang = lang
+    self.notifications = notifications
+    self.contributors_enabled = contributors_enabled
 
   def GetId(self):
     '''Get the unique id of this user.
@@ -1062,6 +1074,86 @@ class User(object):
   geo_enabled = property(GetGeoEnabled, SetGeoEnabled,
                          doc='The value of twitter.geo_enabled for this user.')
 
+  def GetVerified(self):
+    '''Get the setting of verified for this user.
+
+    Returns:
+      True/False if user is a verified account
+    '''
+    return self._verified
+
+  def SetVerified(self, verified):
+    '''Set twitter.verified for this user.
+
+    Args:
+      verified:
+        True/False if user is a verified account
+    '''
+    self._verified = verified
+
+  verified = property(GetVerified, SetVerified,
+                      doc='The value of twitter.verified for this user.')
+
+  def GetLang(self):
+    '''Get the setting of lang for this user.
+
+    Returns:
+      language code of the user
+    '''
+    return self._lang
+
+  def SetLang(self, lang):
+    '''Set twitter.lang for this user.
+
+    Args:
+      lang:
+        language code for the user
+    '''
+    self._lang = lang
+
+  lang = property(GetLang, SetLang,
+                  doc='The value of twitter.lang for this user.')
+
+  def GetNotifications(self):
+    '''Get the setting of notifications for this user.
+
+    Returns:
+      True/False for the notifications setting of the user
+    '''
+    return self._notifications
+
+  def SetNotifications(self, notifications):
+    '''Set twitter.notifications for this user.
+
+    Args:
+      notifications:
+        True/False notifications setting for the user
+    '''
+    self._notifications = notifications
+
+  notifications = property(GetNotifications, SetNotifications,
+                           doc='The value of twitter.notifications for this user.')
+
+  def GetContributorsEnabled(self):
+    '''Get the setting of contributors_enabled for this user.
+
+    Returns:
+      True/False contributors_enabled of the user
+    '''
+    return self._contributors_enabled
+
+  def SetContributorsEnabled(self, contributors_enabled):
+    '''Set twitter.contributors_enabled for this user.
+
+    Args:
+      contributors_enabled:
+        True/False contributors_enabled setting for the user
+    '''
+    self._contributors_enabled = contributors_enabled
+
+  contributors_enabled = property(GetContributorsEnabled, SetContributorsEnabled,
+                                  doc='The value of twitter.contributors_enabled for this user.')
+
   def __ne__(self, other):
     return not self.__eq__(other)
 
@@ -1089,7 +1181,12 @@ class User(object):
              self.favourites_count == other.favourites_count and \
              self.friends_count == other.friends_count and \
              self.status == other.status and \
-             self.geo_enabled == other.geo_enabled
+             self.geo_enabled == other.geo_enabled and \
+             self.verified == other.verified and \
+             self.lang == other.lang and \
+             self.notifications == other.notifications and \
+             self.contributors_enabled == other.contributors_enabled
+             
     except AttributeError:
       return False
 
@@ -1162,6 +1259,15 @@ class User(object):
       data['favourites_count'] = self.favourites_count
     if self.geo_enabled:
       data['geo_enabled'] = self.geo_enabled
+    if self.verified:
+      data['verified'] = self.verified
+    if self.lang:
+      data['lang'] = self.lang
+    if self.notifications:
+      data['notifications'] = self.notifications
+    if self.contributors_enabled:
+      data['contributors_enabled'] = self.contributors_enabled
+
     return data
 
   @staticmethod
@@ -1200,7 +1306,11 @@ class User(object):
                 time_zone = data.get('time_zone', None),
                 url=data.get('url', None),
                 status=status,
-                geo_enabled=data.get('geo_enabled', None))
+                geo_enabled=data.get('geo_enabled', None),
+                verified=data.get('verified', None),
+                lang=data.get('lang', None),
+                notifications=data.get('notifications', None),
+                contributors_enabled=data.get('contributors_enabled', None))
 
 class List(object):
   '''A class representing the List structure used by the twitter API.

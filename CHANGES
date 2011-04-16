@@ -1,3 +1,12 @@
+2011-04-16
+
+ bumped version to 0.8.2
+
+ Issue 193
+ http://code.google.com/p/python-twitter/issues/detail?id=193
+ Missing retweet_count field on Status object
+ Patch (with minor tweaks) by from alissonp
+
 2011-02-26
 
  Issue 166

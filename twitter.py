@@ -17,7 +17,7 @@
 '''A library that provides a Python interface to the Twitter API'''
 
 __author__ = 'python-twitter@googlegroups.com'
-__version__ = '0.8.1'
+__version__ = '0.8.2'
 
 
 import base64
@@ -132,7 +132,8 @@ class Status(object):
                coordinates=None,
                contributors=None,
                retweeted=None,
-               retweeted_status=None):
+               retweeted_status=None,
+               retweet_count=None):
     '''An object to hold a Twitter status message.
 
     This class is normally instantiated by the twitter.Api class and
@@ -159,6 +160,16 @@ class Status(object):
       now:
         The current time, if the client choses to set it.
         Defaults to the wall clock time. [Optional]
+      urls:
+      user_mentions:
+      hashtags:
+      geo:
+      place:
+      coordinates:
+      contributors:
+      retweeted:
+      retweeted_status:
+      retweet_count:
     '''
     self.created_at = created_at
     self.favorited = favorited
@@ -181,6 +192,7 @@ class Status(object):
     self.coordinates = coordinates
     self.contributors = contributors
     self.retweeted_status = retweeted_status
+    self.retweet_count = retweet_count
 
   def GetCreatedAt(self):
     '''Get the time this status message was posted.
@@ -473,6 +485,15 @@ class Status(object):
   retweeted_status = property(GetRetweeted_status, SetRetweeted_status,
                               doc='')
 
+  def GetRetweetCount(self):
+    return self._retweet_count
+
+  def SetRetweetCount(self, retweet_count):
+    self._retweet_count = retweet_count
+
+  retweet_count = property(GetRetweetCount, SetRetweetCount,
+                           doc='')
+
   def __ne__(self, other):
     return not self.__eq__(other)
 
@@ -495,7 +516,8 @@ class Status(object):
              self.place == other.place and \
              self.coordinates == other.coordinates and \
              self.contributors == other.contributors and \
-             self.retweeted_status == other.retweeted_status
+             self.retweeted_status == other.retweeted_status and \
+             self.retweet_count == other.retweet_count
     except AttributeError:
       return False
 
@@ -564,6 +586,8 @@ class Status(object):
       data['hashtags'] = [h.text for h in self.hashtags]
     if self.retweeted_status:
       data['retweeted_status'] = self.retweeted_status.AsDict()
+    if self.retweet_count:
+      data['retweet_count'] = self.retweet_count
     return data
 
   @staticmethod
@@ -612,7 +636,8 @@ class Status(object):
                   place=data.get('place', None),
                   coordinates=data.get('coordinates', None),
                   contributors=data.get('contributors', None),
-                  retweeted_status=retweeted_status)
+                  retweeted_status=retweeted_status,
+                  retweet_count=data.get('retweet_count', None))
 
 
 class User(object):

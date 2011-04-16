@@ -7,6 +7,11 @@
  Missing retweet_count field on Status object
  Patch (with minor tweaks) by from alissonp
 
+ Issue 181
+ http://code.google.com/p/python-twitter/issues/detail?id=181
+ Add oauth2 to install_requires parameter list and also updated
+ README to note that the oauth2 lib can be found in two locations
+
 2011-02-26
 
  Issue 166

@@ -35,7 +35,7 @@ METADATA = dict(
 
 # Extra package metadata to be used only if setuptools is installed
 SETUPTOOLS_METADATA = dict(
-  install_requires = ['setuptools', 'simplejson'],
+  install_requires = ['setuptools', 'simplejson', 'oauth2'],
   include_package_data = True,
   classifiers = [
     'Development Status :: 4 - Beta',

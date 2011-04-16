@@ -671,6 +671,8 @@ class User(object):
     user.lang
     user.notifications
     user.contributors_enabled
+    user.created_at
+    user.listed_count
   '''
   def __init__(self,
                id=None,
@@ -698,7 +700,9 @@ class User(object):
                verified=None,
                lang=None,
                notifications=None,
-               contributors_enabled=None):
+               contributors_enabled=None,
+               created_at=None,
+               listed_count=None):
     self.id = id
     self.name = name
     self.screen_name = screen_name
@@ -725,6 +729,8 @@ class User(object):
     self.lang = lang
     self.notifications = notifications
     self.contributors_enabled = contributors_enabled
+    self.created_at = created_at
+    self.listed_count = listed_count
 
   def GetId(self):
     '''Get the unique id of this user.
@@ -994,6 +1000,26 @@ class User(object):
   friends_count = property(GetFriendsCount, SetFriendsCount,
                            doc='The number of friends for this user.')
 
+  def GetListedCount(self):
+    '''Get the listed count for this user.
+
+    Returns:
+      The number of lists this user belongs to.
+    '''
+    return self._listed_count
+
+  def SetListedCount(self, count):
+    '''Set the listed count for this user.
+
+    Args:
+      count:
+        The number of lists this user belongs to.
+    '''
+    self._listed_count = count
+
+  listed_count = property(GetListedCount, SetListedCount,
+                          doc='The number of lists this user belongs to.')
+
   def GetFollowersCount(self):
     '''Get the follower count for this user.
 
@@ -1154,6 +1180,26 @@ class User(object):
   contributors_enabled = property(GetContributorsEnabled, SetContributorsEnabled,
                                   doc='The value of twitter.contributors_enabled for this user.')
 
+  def GetCreatedAt(self):
+    '''Get the setting of created_at for this user.
+
+    Returns:
+      created_at value of the user
+    '''
+    return self._created_at
+
+  def SetCreatedAt(self, created_at):
+    '''Set twitter.created_at for this user.
+
+    Args:
+      created_at:
+        created_at value for the user
+    '''
+    self._created_at = created_at
+
+  created_at = property(GetCreatedAt, SetCreatedAt,
+                        doc='The value of twitter.created_at for this user.')
+
   def __ne__(self, other):
     return not self.__eq__(other)
 
@@ -1185,8 +1231,10 @@ class User(object):
              self.verified == other.verified and \
              self.lang == other.lang and \
              self.notifications == other.notifications and \
-             self.contributors_enabled == other.contributors_enabled
-             
+             self.contributors_enabled == other.contributors_enabled and \
+             self.created_at == other.created_at and \
+             self.listed_count == other.listed_count
+
     except AttributeError:
       return False
 
@@ -1267,6 +1315,10 @@ class User(object):
       data['notifications'] = self.notifications
     if self.contributors_enabled:
       data['contributors_enabled'] = self.contributors_enabled
+    if self.created_at:
+      data['created_at'] = self.created_at
+    if self.listed_count:
+      data['listed_count'] = self.listed_count
 
     return data
 
@@ -1310,7 +1362,9 @@ class User(object):
                 verified=data.get('verified', None),
                 lang=data.get('lang', None),
                 notifications=data.get('notifications', None),
-                contributors_enabled=data.get('contributors_enabled', None))
+                contributors_enabled=data.get('contributors_enabled', None),
+                created_at=data.get('created_at', None),
+                listed_count=data.get('listed_count', None))
 
 class List(object):
   '''A class representing the List structure used by the twitter API.

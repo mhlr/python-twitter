@@ -12,10 +12,11 @@
  Add oauth2 to install_requires parameter list and also updated
  README to note that the oauth2 lib can be found in two locations
 
- Issue 182
+ Issue 182, Issue 137, Issue 93, Issue 190
  language value missing from User object
  Added 'lang' item and also some others that were needed:
-   verified, notifications and contributors_enabled
+   verified, notifications, contributors_enabled and listed_count
+ patches by apetresc, jpwigan and ghills
 
 2011-02-26
 

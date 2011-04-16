@@ -1,5 +1,7 @@
 2011-04-16
 
+ bumped version to 0.8.3
+ released 0.8.2 to PyPI
  bumped version to 0.8.2
 
  Issue 193
@@ -16,7 +18,7 @@
  language value missing from User object
  Added 'lang' item and also some others that were needed:
    verified, notifications, contributors_enabled and listed_count
- patches by apetresc, jpwigan and ghills
+ patches by wreinerat, apetresc, jpwigan and ghills
 
 2011-02-26
 

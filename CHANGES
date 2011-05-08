@@ -1,3 +1,13 @@
+2011-05-08
+
+ https://code.google.com/p/python-twitter/issues/detail?id=184
+ A comment in this issue made me realize that the parameter sanity
+ check for max_id was missing in GetMentions() - added
+
+ First pass at working in some of the cursor support that has been
+ in the Twitter API but we haven't made full use of - still working
+ out the small issues.
+
 2011-04-16
 
  bumped version to 0.8.3

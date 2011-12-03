@@ -1,5 +1,12 @@
 2011-12-03
 
+ https://code.google.com/p/python-twitter/issues/detail?id=217
+ As described at https://dev.twitter.com/docs/api/1/get/trends,
+ GET trends (corresponding to Api.GetTrendsCurrent) is now
+ deprecated in favor of GET trends/:woeid. GET trends also now
+ requires authentication, while trends/:woeid doesn't.
+ Patch and excellent description by jessica.mckellar
+
  https://code.google.com/p/python-twitter/issues/detail?id=218
  Currently, two Trends containing the same information
  (name, query, and timestamp) aren't considered equal because

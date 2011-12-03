@@ -2449,6 +2449,34 @@ class Api(object):
         trends.append(Trend.NewFromJsonDict(item, timestamp = t))
     return trends
 
+  def GetTrendsWoeid(self, woeid, exclude=None):
+    '''Return the top 10 trending topics for a specific WOEID, if trending
+    information is available for it.
+
+    Args:
+      woeid:
+        the Yahoo! Where On Earth ID for a location.
+      exclude:
+        Appends the exclude parameter as a request parameter.
+        Currently only exclude=hashtags is supported. [Optional]
+
+    Returns:
+      A list with 10 entries. Each entry contains a Trend.
+    '''
+    parameters = {}
+    if exclude:
+      parameters['exclude'] = exclude
+    url  = '%s/trends/%s.json' % (self.base_url, woeid)
+    json = self._FetchUrl(url, parameters=parameters)
+    data = self._ParseAndCheckTwitter(json)
+
+    trends = []
+    timestamp = data[0]['as_of']
+
+    for trend in data[0]['trends']:
+        trends.append(Trend.NewFromJsonDict(trend, timestamp = timestamp))
+    return trends
+
   def GetTrendsDaily(self, exclude=None, startdate=None):
     '''Get the current top trending topics for each hour in a given day
 

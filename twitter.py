@@ -588,6 +588,10 @@ class Status(object):
       data['retweeted_status'] = self.retweeted_status.AsDict()
     if self.retweet_count:
       data['retweet_count'] = self.retweet_count
+    if self.urls:
+      data['urls'] = dict([(url.url, url.expanded_url) for url in self.urls])
+    if self.user_mentions:
+      data['user_mentions'] = [um.AsDict() for um in self.user_mentions]                                                                                                                                       
     return data
 
   @staticmethod
@@ -2722,7 +2726,7 @@ class Api(object):
     data = self._ParseAndCheckTwitter(json)
     return [Status.NewFromJsonDict(x) for x in data]
 
-  def GetStatus(self, id):
+  def GetStatus(self, id, include_entities=None):
     '''Returns a single status message.
 
     The twitter.Api instance must be authenticated if the
@@ -2731,7 +2735,11 @@ class Api(object):
     Args:
       id:
         The numeric ID of the status you are trying to retrieve.
-
+      include_entities:
+        If True, each tweet will include a node called "entities".
+        This node offers a variety of metadata about the tweet in a
+        discreet structure, including: user_mentions, urls, and
+        hashtags. [Optional]
     Returns:
       A twitter.Status instance representing that status message
     '''
@@ -2740,8 +2748,13 @@ class Api(object):
         long(id)
     except:
       raise TwitterError("id must be an long integer")
+
+    parameters = {}
+    if include_entities:
+      parameters['include_entities'] = 1
+
     url  = '%s/statuses/show/%s.json' % (self.base_url, id)
-    json = self._FetchUrl(url)
+    json = self._FetchUrl(url, parameters=parameters)
     data = self._ParseAndCheckTwitter(json)
     return Status.NewFromJsonDict(data)
 

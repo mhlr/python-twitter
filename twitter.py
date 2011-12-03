@@ -2200,7 +2200,7 @@ class Api(object):
         See shorten_url.py for an example shortner. [Optional]
       base_url:
         The base URL to use to contact the Twitter API.
-        Defaults to https://twitter.com. [Optional]
+        Defaults to https://api.twitter.com. [Optional]
       use_gzip_compression:
         Set to True to tell enable gzip compression for any call
         made to Twitter.  Defaults to False. [Optional]
@@ -3024,7 +3024,7 @@ class Api(object):
     Returns:
       A sequence of twitter.User instances, one for each follower
     '''
-    url = 'http://twitter.com/followers/ids.json'
+    url = '%s/followers/ids.json' % self.base_url
     parameters = {}
     parameters['cursor'] = cursor
     if userid:

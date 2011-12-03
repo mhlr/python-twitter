@@ -1,5 +1,9 @@
 2011-12-03
 
+ https://code.google.com/p/python-twitter/source/detail?r=263fe2a0db8be23347e92b81d6ab3c33b4ef292f
+ Comment by qfuxiang to the above changeset
+ The base url was wrong for the Followers API calls
+
  https://code.google.com/p/python-twitter/issues/detail?id=213
  Add include_entities parameter to GetStatus()
  Patch by gaelenh

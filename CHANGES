@@ -1,5 +1,12 @@
 2011-12-03
 
+ https://code.google.com/p/python-twitter/issues/detail?id=218
+ Currently, two Trends containing the same information
+ (name, query, and timestamp) aren't considered equal because
+ __eq__ isn't overridden, like it is for Status, User, and the
+ other Twitter objects.
+ Patch and excellent description by jessica.mckellar
+
  https://code.google.com/p/python-twitter/issues/detail?id=220
  https://code.google.com/p/python-twitter/issues/detail?id=211
  https://code.google.com/p/python-twitter/issues/detail?id=206

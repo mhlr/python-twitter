@@ -2040,6 +2040,18 @@ class Trend(object):
   def __str__(self):
     return 'Name: %s\nQuery: %s\nTimestamp: %s\n' % (self.name, self.query, self.timestamp)
 
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
+  def __eq__(self, other):
+    try:
+      return other and \
+          self.name == other.name and \
+          self.query == other.query and \
+          self.timestamp == other.timestamp
+    except AttributeError:
+      return False
+
   @staticmethod
   def NewFromJsonDict(data, timestamp = None):
     '''Create a new instance based on a JSON dict

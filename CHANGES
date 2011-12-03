@@ -1,5 +1,11 @@
 2011-12-03
 
+ https://code.google.com/p/python-twitter/issues/detail?id=214
+ Change PostUpdate() so that it takes the shortened link into
+ account.  Small tweak to the patch provided to make the
+ shortened-link length set by a API value instead of a constant.
+ Patch by ceesjan.ytec
+
  https://code.google.com/p/python-twitter/issues/detail?id=216
  AttributeError handles the fact that win* doesn't implement
  os.getlogin()

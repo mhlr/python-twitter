@@ -2211,6 +2211,7 @@ class Api(object):
     self._use_gzip       = use_gzip_compression
     self._debugHTTP      = debugHTTP
     self._oauth_consumer = None
+    self._shortlink_size = 19
 
     self._InitializeRequestHeaders(request_headers)
     self._InitializeUserAgent()
@@ -2767,6 +2768,16 @@ class Api(object):
     data = self._ParseAndCheckTwitter(json)
     return Status.NewFromJsonDict(data)
 
+  @classmethod
+  def _calculate_status_length(cls, status, linksize=19):
+    dummy_link_replacement = 'https://-%d-chars%s/' % (linksize, '-'*(linksize - 18))
+    shortened = ' '.join([x if not (x.startswith('http://') or
+                                    x.startswith('https://'))
+                            else
+                                dummy_link_replacement
+                            for x in status.split(' ')])
+    return len(shortened)
+
   def PostUpdate(self, status, in_reply_to_status_id=None):
     '''Post a twitter status message from the authenticated user.
 
@@ -2795,7 +2806,7 @@ class Api(object):
     else:
       u_status = unicode(status, self._input_encoding)
 
-    if len(u_status) > CHARACTER_LIMIT:
+    if self._calculate_status_length(u_status, self._shortlink_size) > CHARACTER_LIMIT:
       raise TwitterError("Text must be less than or equal to %d characters. "
                          "Consider using PostUpdates." % CHARACTER_LIMIT)
 

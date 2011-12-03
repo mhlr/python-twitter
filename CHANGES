@@ -1,3 +1,12 @@
+2011-12-03
+
+ https://code.google.com/p/python-twitter/issues/detail?id=220
+ https://code.google.com/p/python-twitter/issues/detail?id=211
+ https://code.google.com/p/python-twitter/issues/detail?id=206
+ All variations on a theme - basically Twitter is returning
+ something different for an error payload.  Changed code to
+ check for both 'error' and 'errors'.
+
 2011-05-08
 
  https://code.google.com/p/python-twitter/issues/detail?id=184

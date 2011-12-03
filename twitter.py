@@ -3698,6 +3698,8 @@ class Api(object):
     # to check first, rather than try and catch the exception
     if 'error' in data:
       raise TwitterError(data['error'])
+    if 'errors' in data:
+      raise TwitterError(data['errors'])
 
   def _FetchUrl(self,
                 url,

@@ -1,5 +1,10 @@
 2011-12-03
 
+ https://code.google.com/p/python-twitter/issues/detail?id=216
+ AttributeError handles the fact that win* doesn't implement
+ os.getlogin()
+ Patch by yaleman
+
  https://code.google.com/p/python-twitter/issues/detail?id=217
  As described at https://dev.twitter.com/docs/api/1/get/trends,
  GET trends (corresponding to Api.GetTrendsCurrent) is now

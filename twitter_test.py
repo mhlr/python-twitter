@@ -356,32 +356,23 @@ class ApiTest(unittest.TestCase):
     api = twitter.Api(consumer_key='CONSUMER_KEY',
                       consumer_secret='CONSUMER_SECRET',
                       access_token_key='OAUTH_TOKEN',
-                      access_token_secret='OAUTH_SECRET', 
+                      access_token_secret='OAUTH_SECRET',
                       cache=None)
     api.SetUrllib(self._urllib)
     self._api = api
 
   def testTwitterError(self):
     '''Test that twitter responses containing an error message are wrapped.'''
-    self._AddHandler('https://api.twitter.com/1/statuses/public_timeline.json',
+    self._AddHandler('https://api.twitter.com/1/statuses/user_timeline.json',
                      curry(self._OpenTestData, 'public_timeline_error.json'))
     # Manually try/catch so we can check the exception's value
     try:
-      statuses = self._api.GetPublicTimeline()
+      statuses = self._api.GetUserTimeline()
     except twitter.TwitterError, error:
       # If the error message matches, the test passes
       self.assertEqual('test error', error.message)
     else:
       self.fail('TwitterError expected')
-
-  def testGetPublicTimeline(self):
-    '''Test the twitter.Api GetPublicTimeline method'''
-    self._AddHandler('https://api.twitter.com/1/statuses/public_timeline.json?since_id=12345',
-                     curry(self._OpenTestData, 'public_timeline.json'))
-    statuses = self._api.GetPublicTimeline(since_id=12345)
-    # This is rather arbitrary, but spot checking is better than nothing
-    self.assertEqual(20, len(statuses))
-    self.assertEqual(89497702, statuses[0].id)
 
   def testGetUserTimeline(self):
     '''Test the twitter.Api GetUserTimeline method'''
@@ -424,12 +415,30 @@ class ApiTest(unittest.TestCase):
     # This is rather arbitrary, but spot checking is better than nothing
     self.assertEqual(u'Моё судно на воздушной подушке полно угрей', status.text)
 
+  def testPostUpdateLatLon(self):
+    '''Test the twitter.Api PostUpdate method, when used in conjunction with latitude and longitude'''
+    self._AddHandler('https://api.twitter.com/1/statuses/update.json',
+                     curry(self._OpenTestData, 'update_latlong.json'))
+    #test another update with geo parameters, again test somewhat arbitrary
+    status = self._api.PostUpdate(u'Моё судно на воздушной подушке полно угрей'.encode('utf8'), latitude=54.2, longitude=-2)
+    self.assertEqual(u'Моё судно на воздушной подушке полно угрей', status.text)
+    self.assertEqual(u'Point',status.GetGeo()['type'])
+    self.assertEqual(26.2,status.GetGeo()['coordinates'][0])
+    self.assertEqual(127.5,status.GetGeo()['coordinates'][1])
+
   def testGetReplies(self):
     '''Test the twitter.Api GetReplies method'''
     self._AddHandler('https://api.twitter.com/1/statuses/replies.json?page=1',
                      curry(self._OpenTestData, 'replies.json'))
     statuses = self._api.GetReplies(page=1)
     self.assertEqual(36657062, statuses[0].id)
+
+  def testGetRetweetsOfMe(self):
+    '''Test the twitter.API GetRetweetsOfMe method'''
+    self._AddHandler('https://api.twitter.com/1/statuses/retweets_of_me.json',
+        curry(self._OpenTestData, 'retweets_of_me.json'))
+    retweets = self._api.GetRetweetsOfMe()
+    self.assertEqual(253650670274637824, retweets[0].id)
 
   def testGetFriends(self):
     '''Test the twitter.Api GetFriends method'''
@@ -441,9 +450,9 @@ class ApiTest(unittest.TestCase):
 
   def testGetFollowers(self):
     '''Test the twitter.Api GetFollowers method'''
-    self._AddHandler('https://api.twitter.com/1/statuses/followers.json?page=1',
+    self._AddHandler('https://api.twitter.com/1/statuses/followers.json?cursor=-1',
                      curry(self._OpenTestData, 'followers.json'))
-    users = self._api.GetFollowers(page=1)
+    users = self._api.GetFollowers()
     # This is rather arbitrary, but spot checking is better than nothing
     alexkingorg = [u.status for u in users if u.screen_name == 'alexkingorg']
     self.assertEqual(89554432, alexkingorg[0].id)
@@ -536,9 +545,12 @@ class MockUrllib(object):
 
   def HTTPSHandler(self, *args, **kwargs):
       return None
-  
+
   def OpenerDirector(self):
       return self.build_opener()
+
+  def ProxyHandler(self,*args,**kwargs):
+      return None
 
 class MockOpener(object):
   '''A mock opener for urllib'''
@@ -550,20 +562,20 @@ class MockOpener(object):
   def open(self, url, data=None):
     if self._opened:
       raise Exception('MockOpener already opened.')
-  
+
     # Remove parameters from URL - they're only added by oauth and we
-    # don't want to test oauth 
+    # don't want to test oauth
     if '?' in url:
         # We split using & and filter on the beginning of each key
         # This is crude but we have to keep the ordering for now
         (url, qs) = url.split('?')
-        
-        tokens = [token for token in qs.split('&') 
+
+        tokens = [token for token in qs.split('&')
                   if not token.startswith('oauth')]
-        
+
         if len(tokens) > 0:
             url = "%s?%s"%(url, '&'.join(tokens))
-  
+
     if url in self._handlers:
       self._opened = True
       return self._handlers[url]()

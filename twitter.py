@@ -17,10 +17,9 @@
 '''A library that provides a Python interface to the Twitter API'''
 
 __author__ = 'python-twitter@googlegroups.com'
-__version__ = '0.8.3'
+__version__ = '0.8.5'
 
 
-import base64
 import calendar
 import datetime
 import httplib
@@ -30,7 +29,6 @@ import sys
 import tempfile
 import textwrap
 import time
-import calendar
 import urllib
 import urllib2
 import urlparse
@@ -87,9 +85,9 @@ class TwitterError(Exception):
 
 class Status(object):
   '''A class representing the Status structure used by the twitter API.
-  
+
   The Status structure exposes the following properties:
-  
+
     status.created_at
     status.created_at_in_seconds # read only
     status.favorited
@@ -127,6 +125,7 @@ class Status(object):
                urls=None,
                user_mentions=None,
                hashtags=None,
+               media=None,
                geo=None,
                place=None,
                coordinates=None,
@@ -158,7 +157,7 @@ class Status(object):
         A twitter.User instance representing the person posting the
         message. [Optional]
       now:
-        The current time, if the client choses to set it.
+        The current time, if the client chooses to set it.
         Defaults to the wall clock time. [Optional]
       urls:
       user_mentions:
@@ -187,6 +186,7 @@ class Status(object):
     self.urls = urls
     self.user_mentions = user_mentions
     self.hashtags = hashtags
+    self.media = media
     self.geo = geo
     self.place = place
     self.coordinates = coordinates
@@ -361,7 +361,7 @@ class Status(object):
                       doc='The geolocation string of this status message')
 
   def GetRelativeCreatedAt(self):
-    '''Get a human redable string representing the posting time
+    '''Get a human readable string representing the posting time
 
     Returns:
       A human readable string representing the posting time
@@ -391,24 +391,24 @@ class Status(object):
                                      'the posting time')
 
   def GetUser(self):
-    '''Get a twitter.User reprenting the entity posting this status message.
+    '''Get a twitter.User representing the entity posting this status message.
 
     Returns:
-      A twitter.User reprenting the entity posting this status message
+      A twitter.User representing the entity posting this status message
     '''
     return self._user
 
   def SetUser(self, user):
-    '''Set a twitter.User reprenting the entity posting this status message.
+    '''Set a twitter.User representing the entity posting this status message.
 
     Args:
       user:
-        A twitter.User reprenting the entity posting this status message
+        A twitter.User representing the entity posting this status message
     '''
     self._user = user
 
   user = property(GetUser, SetUser,
-                  doc='A twitter.User reprenting the entity posting this '
+                  doc='A twitter.User representing the entity posting this '
                       'status message')
 
   def GetNow(self):
@@ -591,7 +591,7 @@ class Status(object):
     if self.urls:
       data['urls'] = dict([(url.url, url.expanded_url) for url in self.urls])
     if self.user_mentions:
-      data['user_mentions'] = [um.AsDict() for um in self.user_mentions]                                                                                                                                       
+      data['user_mentions'] = [um.AsDict() for um in self.user_mentions]
     return data
 
   @staticmethod
@@ -614,6 +614,7 @@ class Status(object):
     urls = None
     user_mentions = None
     hashtags = None
+    media = None
     if 'entities' in data:
       if 'urls' in data['entities']:
         urls = [Url.NewFromJsonDict(u) for u in data['entities']['urls']]
@@ -621,6 +622,10 @@ class Status(object):
         user_mentions = [User.NewFromJsonDict(u) for u in data['entities']['user_mentions']]
       if 'hashtags' in data['entities']:
         hashtags = [Hashtag.NewFromJsonDict(h) for h in data['entities']['hashtags']]
+      if 'media' in data['entities']:
+        media = data['entities']['media']
+      else:
+        media = []
     return Status(created_at=data.get('created_at', None),
                   favorited=data.get('favorited', None),
                   id=data.get('id', None),
@@ -636,6 +641,7 @@ class Status(object):
                   urls=urls,
                   user_mentions=user_mentions,
                   hashtags=hashtags,
+                  media=media,
                   geo=data.get('geo', None),
                   place=data.get('place', None),
                   coordinates=data.get('coordinates', None),
@@ -1372,9 +1378,9 @@ class User(object):
 
 class List(object):
   '''A class representing the List structure used by the twitter API.
-  
+
   The List structure exposes the following properties:
-  
+
     list.id
     list.name
     list.slug
@@ -1731,9 +1737,9 @@ class List(object):
 
 class DirectMessage(object):
   '''A class representing the DirectMessage structure used by the twitter API.
-  
+
   The DirectMessage structure exposes the following properties:
-  
+
     direct_message.id
     direct_message.created_at
     direct_message.created_at_in_seconds # read only
@@ -2014,7 +2020,7 @@ class DirectMessage(object):
                          recipient_screen_name=data.get('recipient_screen_name', None))
 
 class Hashtag(object):
-  ''' A class represeinting a twitter hashtag
+  ''' A class representing a twitter hashtag
   '''
   def __init__(self,
                text=None):
@@ -2152,6 +2158,7 @@ class Api(object):
       >>> api.GetFollowers()
       >>> api.GetFeatured()
       >>> api.GetDirectMessages()
+      >>> api.GetSentDirectMessages()
       >>> api.PostDirectMessage(user, text)
       >>> api.DestroyDirectMessage(id)
       >>> api.DestroyFriendship(user)
@@ -2278,82 +2285,18 @@ class Api(object):
     self._access_token_secret = None
     self._oauth_consumer      = None
 
-  def GetPublicTimeline(self,
-                        since_id=None,
-                        include_rts=None,
-                        include_entities=None):
-    '''Fetch the sequence of public twitter.Status message for all users.
-
-    Args:
-      since_id:
-        Returns results with an ID greater than (that is, more recent
-        than) the specified ID. There are limits to the number of
-        Tweets which can be accessed through the API. If the limit of
-        Tweets has occured since the since_id, the since_id will be
-        forced to the oldest ID available. [Optional]
-      include_rts:
-        If True, the timeline will contain native retweets (if they
-        exist) in addition to the standard stream of tweets. [Optional]
-      include_entities:
-        If True, each tweet will include a node called "entities,".
-        This node offers a variety of metadata about the tweet in a
-        discreet structure, including: user_mentions, urls, and
-        hashtags. [Optional]
-
-    Returns:
-      An sequence of twitter.Status instances, one for each message
-    '''
-    parameters = {}
-
-    if since_id:
-      parameters['since_id'] = since_id
-    if include_rts:
-      parameters['include_rts'] = 1
-    if include_entities:
-      parameters['include_entities'] = 1
-
-    url  = '%s/statuses/public_timeline.json' % self.base_url
-    json = self._FetchUrl(url,  parameters=parameters)
-    data = self._ParseAndCheckTwitter(json)
-    return [Status.NewFromJsonDict(x) for x in data]
-
-  def FilterPublicTimeline(self,
-                           term,
-                           since_id=None):
-    '''Filter the public twitter timeline by a given search term on
-    the local machine.
-
-    Args:
-      term:
-        term to search by.
-      since_id:
-        Returns results with an ID greater than (that is, more recent
-        than) the specified ID. There are limits to the number of
-        Tweets which can be accessed through the API. If the limit of
-        Tweets has occured since the since_id, the since_id will be
-        forced to the oldest ID available. [Optional]
-
-    Returns:
-      A sequence of twitter.Status instances, one for each message
-      containing the term
-    '''
-    statuses = self.GetPublicTimeline(since_id)
-    results  = []
-
-    for s in statuses:
-      if s.text.lower().find(term.lower()) != -1:
-        results.append(s)
-
-    return results
-
   def GetSearch(self,
                 term=None,
                 geocode=None,
                 since_id=None,
+                max_id=None,
+                until=None,
                 per_page=15,
                 page=1,
-                lang="en",
+                lang=None,
                 show_user="true",
+                result_type="mixed",
+                include_entities=None,
                 query_users=False):
     '''Return twitter search results for a given term.
 
@@ -2364,8 +2307,14 @@ class Api(object):
         Returns results with an ID greater than (that is, more recent
         than) the specified ID. There are limits to the number of
         Tweets which can be accessed through the API. If the limit of
-        Tweets has occured since the since_id, the since_id will be
+        Tweets has occurred since the since_id, the since_id will be
         forced to the oldest ID available. [Optional]
+      max_id:
+        Returns only statuses with an ID less than (that is, older
+        than) or equal to the specified ID. [Optional]
+      until:
+        Returns tweets generated before the given date. Date should be
+        formatted as YYYY-MM-DD. [Optional]
       geocode:
         geolocation information in the form (latitude, longitude, radius)
         [Optional]
@@ -2375,9 +2324,18 @@ class Api(object):
         Specifies the page of results to retrieve.
         Note: there are pagination limits. [Optional]
       lang:
-        language for results.  Default is English [Optional]
+        language for results as ISO 639-1 code.  Default is None (all languages)
+        [Optional]
       show_user:
         prefixes screen name in status
+      result_type:
+        Type of result which should be returned.  Default is "mixed".  Other
+        valid options are "recent" and "popular". [Optional]
+      include_entities:
+        If True, each tweet will include a node called "entities,".
+        This node offers a variety of metadata about the tweet in a
+        discreet structure, including: user_mentions, urls, and
+        hashtags. [Optional]
       query_users:
         If set to False, then all users only have screen_name and
         profile_image_url available.
@@ -2392,7 +2350,22 @@ class Api(object):
     parameters = {}
 
     if since_id:
-      parameters['since_id'] = since_id
+      try:
+        parameters['since_id'] = long(since_id)
+      except:
+        raise TwitterError("since_id must be an integer")
+
+    if max_id:
+      try:
+        parameters['max_id'] = long(max_id)
+      except:
+        raise TwitterError("max_id must be an integer")
+
+    if until:
+        parameters['until'] = until
+
+    if lang:
+      parameters['lang'] = lang
 
     if term is None and geocode is None:
       return []
@@ -2403,10 +2376,14 @@ class Api(object):
     if geocode is not None:
       parameters['geocode'] = ','.join(map(str, geocode))
 
+    if include_entities:
+      parameters['include_entities'] = 1
+
     parameters['show_user'] = show_user
-    parameters['lang'] = lang
     parameters['rpp'] = per_page
     parameters['page'] = page
+    if result_type in ["mixed", "popular", "recent"]:
+      parameters['result_type'] = result_type
 
     # Make and send requests
     url  = 'http://search.twitter.com/search.json'
@@ -2529,7 +2506,7 @@ class Api(object):
         Currently only exclude=hashtags is supported. [Optional]
     Returns:
       A list with each entry contains the twitter.
-      Trend elements of trending topics for the corrsponding day of the week
+      Trend elements of trending topics for the corresponding day of the week
     '''
     parameters = {}
     if exclude:
@@ -2582,7 +2559,7 @@ class Api(object):
         Returns results with an ID greater than (that is, more recent
         than) the specified ID. There are limits to the number of
         Tweets which can be accessed through the API. If the limit of
-        Tweets has occured since the since_id, the since_id will be
+        Tweets has occurred since the since_id, the since_id will be
         forced to the oldest ID available. [Optional]
       retweets:
         If True, the timeline will contain native retweets. [Optional]
@@ -2620,7 +2597,7 @@ class Api(object):
     if retweets:
       parameters['include_rts'] = True
     if include_entities:
-      parameters['include_entities'] = True
+      parameters['include_entities'] = 1
     json = self._FetchUrl(url, parameters=parameters)
     data = self._ParseAndCheckTwitter(json)
     return [Status.NewFromJsonDict(x) for x in data]
@@ -2634,7 +2611,9 @@ class Api(object):
                       count=None,
                       page=None,
                       include_rts=None,
-                      include_entities=None):
+                      trim_user=None,
+                      include_entities=None,
+                      exclude_replies=None):
     '''Fetch the sequence of public Status messages for a single user.
 
     The twitter.Api instance must be authenticated if the user is private.
@@ -2644,18 +2623,18 @@ class Api(object):
         Specifies the ID or screen name of the user for whom to return
         the user_timeline. [Optional]
       user_id:
-        Specfies the ID of the user for whom to return the
+        Specifies the ID of the user for whom to return the
         user_timeline. Helpful for disambiguating when a valid user ID
         is also a valid screen name. [Optional]
       screen_name:
-        Specfies the screen name of the user for whom to return the
+        Specifies the screen name of the user for whom to return the
         user_timeline. Helpful for disambiguating when a valid screen
         name is also a user ID. [Optional]
       since_id:
         Returns results with an ID greater than (that is, more recent
         than) the specified ID. There are limits to the number of
         Tweets which can be accessed through the API. If the limit of
-        Tweets has occured since the since_id, the since_id will be
+        Tweets has occurred since the since_id, the since_id will be
         forced to the oldest ID available. [Optional]
       max_id:
         Returns only statuses with an ID less than (that is, older
@@ -2669,11 +2648,21 @@ class Api(object):
       include_rts:
         If True, the timeline will contain native retweets (if they
         exist) in addition to the standard stream of tweets. [Optional]
+      trim_user:
+        If True, statuses will only contain the numerical user ID only.
+        Otherwise a full user object will be returned for each status.
+        [Optional]
       include_entities:
         If True, each tweet will include a node called "entities,".
         This node offers a variety of metadata about the tweet in a
         discreet structure, including: user_mentions, urls, and
         hashtags. [Optional]
+       exclude_replies:
+        If True, this will prevent replies from appearing in the returned
+        timeline. Using exclude_replies with the count parameter will mean you
+        will receive up-to count tweets - this is because the count parameter
+        retrieves that many tweets before filtering out retweets and replies.
+        This parameter is only supported for JSON and XML responses. [Optional]
 
     Returns:
       A sequence of Status instances, one for each message up to count
@@ -2721,6 +2710,12 @@ class Api(object):
 
     if include_entities:
       parameters['include_entities'] = 1
+
+    if trim_user:
+      parameters['trim_user'] = 1
+
+    if exclude_replies:
+      parameters['exclude_replies'] = 1
 
     json = self._FetchUrl(url, parameters=parameters)
     data = self._ParseAndCheckTwitter(json)
@@ -2791,7 +2786,7 @@ class Api(object):
                             for x in status.split(' ')])
     return len(shortened)
 
-  def PostUpdate(self, status, in_reply_to_status_id=None):
+  def PostUpdate(self, status, in_reply_to_status_id=None, latitude=None, longitude=None):
     '''Post a twitter status message from the authenticated user.
 
     The twitter.Api instance must be authenticated.
@@ -2806,6 +2801,16 @@ class Api(object):
         attribute of the resulting status to the user ID of the
         message being replied to.  Invalid/missing status IDs will be
         ignored. [Optional]
+      latitude:
+        Latitude coordinate of the tweet in degrees. Will only work
+        in conjunction with longitude argument. Both longitude and
+        latitude will be ignored by twitter if the user has a false
+        geo_enabled setting. [Optional]
+      longitude:
+        Longitude coordinate of the tweet in degrees. Will only work
+        in conjunction with latitude argument. Both longitude and
+        latitude will be ignored by twitter if the user has a false
+        geo_enabled setting. [Optional]
     Returns:
       A twitter.Status instance representing the message posted.
     '''
@@ -2826,6 +2831,9 @@ class Api(object):
     data = {'status': status}
     if in_reply_to_status_id:
       data['in_reply_to_status_id'] = in_reply_to_status_id
+    if latitude != None and longitude != None:
+        data['lat']     = str(latitude)
+        data['long']    = str(longitude)
     json = self._FetchUrl(url, post_data=data)
     data = self._ParseAndCheckTwitter(json)
     return Status.NewFromJsonDict(data)
@@ -2875,7 +2883,7 @@ class Api(object):
          Returns results with an ID greater than (that is, more recent
          than) the specified ID. There are limits to the number of
          Tweets which can be accessed through the API. If the limit of
-         Tweets has occured since the since_id, the since_id will be
+         Tweets has occurred since the since_id, the since_id will be
          forced to the oldest ID available. [Optional]
        max_id:
          Returns results with an ID less than (that is, older than) or
@@ -2924,7 +2932,7 @@ class Api(object):
         Returns results with an ID greater than (that is, more recent
         than) the specified ID. There are limits to the number of
         Tweets which can be accessed through the API. If the limit of
-        Tweets has occured since the since_id, the since_id will be
+        Tweets has occurred since the since_id, the since_id will be
         forced to the oldest ID available. [Optional]
       page:
         Specifies the page of results to retrieve.
@@ -2967,6 +2975,57 @@ class Api(object):
     data = self._ParseAndCheckTwitter(json)
     return [Status.NewFromJsonDict(s) for s in data]
 
+  def GetRetweetsOfMe(self,
+                      count=None,
+                      since_id=None,
+                      max_id=None,
+                      trim_user=False,
+                      include_entities=True,
+                      include_user_entities=True):
+    '''Returns up to 100 of the most recent tweets of the user that have been
+    retweeted by others.
+
+    Args:
+      count:
+        The number of retweets to retrieve, up to 100. If omitted, 20 is
+        assumed.
+      since_id:
+        Returns results with an ID greater than (newer than) this ID.
+      max_id:
+        Returns results with an ID less than or equal to this ID.
+      trim_user:
+        When True, the user object for each tweet will only be an ID.
+      include_entities:
+        When True, the tweet entities will be included.
+      include_user_entities:
+        When True, the user entities will be included.
+    '''
+    if not self._oauth_consumer:
+      raise TwitterError("The twitter.Api instance must be authenticated.")
+    url = '%s/statuses/retweets_of_me.json' % self.base_url
+    parameters = {}
+    if count is not None:
+      try:
+        if int(count) > 100:
+          raise TwitterError("'count' may not be greater than 100")
+      except ValueError:
+        raise TwitterError("'count' must be an integer")
+    if count:
+      parameters['count'] = count
+    if since_id:
+      parameters['since_id'] = since_id
+    if max_id:
+      parameters['max_id'] = max_id
+    if trim_user:
+      parameters['trim_user'] = trim_user
+    if not include_entities:
+      parameters['include_entities'] = include_entities
+    if not include_user_entities:
+      parameters['include_user_entities'] = include_user_entities
+    json = self._FetchUrl(url, parameters=parameters)
+    data = self._ParseAndCheckTwitter(json)
+    return [Status.NewFromJsonDict(s) for s in data]
+
   def GetFriends(self, user=None, cursor=-1):
     '''Fetch the sequence of twitter.User instances, one for each friend.
 
@@ -2986,11 +3045,21 @@ class Api(object):
       url = '%s/statuses/friends/%s.json' % (self.base_url, user)
     else:
       url = '%s/statuses/friends.json' % self.base_url
+    result = []
     parameters = {}
-    parameters['cursor'] = cursor
-    json = self._FetchUrl(url, parameters=parameters)
-    data = self._ParseAndCheckTwitter(json)
-    return [User.NewFromJsonDict(x) for x in data['users']]
+    while True:
+      parameters['cursor'] = cursor
+      json = self._FetchUrl(url, parameters=parameters)
+      data = self._ParseAndCheckTwitter(json)
+      result += [User.NewFromJsonDict(x) for x in data['users']]
+      if 'next_cursor' in data:
+        if data['next_cursor'] == 0 or data['next_cursor'] == data['previous_cursor']:
+          break
+        else:
+          cursor = data['next_cursor']
+      else:
+        break
+    return result
 
   def GetFriendIDs(self, user=None, cursor=-1):
       '''Returns a list of twitter user id's for every person
@@ -3016,24 +3085,33 @@ class Api(object):
       data = self._ParseAndCheckTwitter(json)
       return data
 
-  def GetFollowerIDs(self, userid=None, cursor=-1):
-    '''Fetch the sequence of twitter.User instances, one for each follower
+  def GetFollowerIDs(self, user=None, cursor=-1):
+      '''Returns a list of twitter user id's for every person
+      that is following the specified user.
 
-    The twitter.Api instance must be authenticated.
+      Args:
+        user:
+          The id or screen_name of the user to retrieve the id list for
+          [Optional]
 
-    Returns:
-      A sequence of twitter.User instances, one for each follower
-    '''
-    url = '%s/followers/ids.json' % self.base_url
-    parameters = {}
-    parameters['cursor'] = cursor
-    if userid:
-      parameters['user_id'] = userid
-    json = self._FetchUrl(url, parameters=parameters)
-    data = self._ParseAndCheckTwitter(json)
-    return data
+      Returns:
+        A list of integers, one for each user id.
+      '''
 
-  def GetFollowers(self, cursor=-1):
+      if not user and not self._oauth_consumer:
+          raise TwitterError("twitter.Api instance must be authenticated")
+      if user:
+          url = '%s/followers/ids/%s.json' % (self.base_url, user)
+      else:
+          url = '%s/followers/ids.json' % self.base_url
+
+      parameters = {}
+      parameters['cursor'] = cursor
+      json = self._FetchUrl(url, parameters=parameters)
+      data = self._ParseAndCheckTwitter(json)
+      return data
+
+  def GetFollowers(self, user=None, cursor=-1):
     '''Fetch the sequence of twitter.User instances, one for each follower
 
     The twitter.Api instance must be authenticated.
@@ -3048,8 +3126,12 @@ class Api(object):
     '''
     if not self._oauth_consumer:
       raise TwitterError("twitter.Api instance must be authenticated")
-    url = '%s/statuses/followers.json' % self.base_url
+    if user:
+      url = '%s/statuses/followers/%s.json' % (self.base_url, user.GetId())
+    else:
+      url = '%s/statuses/followers.json' % self.base_url
     result = []
+    parameters = {}
     while True:
       parameters = { 'cursor': cursor }
       json = self._FetchUrl(url, parameters=parameters)
@@ -3058,6 +3140,8 @@ class Api(object):
       if 'next_cursor' in data:
         if data['next_cursor'] == 0 or data['next_cursor'] == data['previous_cursor']:
           break
+        else:
+          cursor = data['next_cursor']
       else:
         break
     return result
@@ -3102,7 +3186,7 @@ class Api(object):
     if not self._oauth_consumer:
       raise TwitterError("The twitter.Api instance must be authenticated.")
     if not user_id and not screen_name and not users:
-      raise TwitterError("Specify at least on of user_id, screen_name, or users.")
+      raise TwitterError("Specify at least one of user_id, screen_name, or users.")
     url = '%s/users/lookup.json' % self.base_url
     parameters = {}
     uids = list()
@@ -3115,7 +3199,15 @@ class Api(object):
     if screen_name:
       parameters['screen_name'] = ','.join(screen_name)
     json = self._FetchUrl(url, parameters=parameters)
-    data = self._ParseAndCheckTwitter(json)
+    try:
+      data = self._ParseAndCheckTwitter(json)
+    except TwitterError as e:
+        t = e.args[0]
+        if len(t) == 1 and ('code' in t[0]) and (t[0]['code'] == 34):
+          data = []
+        else:
+            raise
+
     return [User.NewFromJsonDict(u) for u in data]
 
   def GetUser(self, user):
@@ -3147,7 +3239,7 @@ class Api(object):
         Returns results with an ID greater than (that is, more recent
         than) the specified ID. There are limits to the number of
         Tweets which can be accessed through the API. If the limit of
-        Tweets has occured since the since_id, the since_id will be
+        Tweets has occurred since the since_id, the since_id will be
         forced to the oldest ID available. [Optional]
       page:
         Specifies the page of results to retrieve.
@@ -3157,6 +3249,42 @@ class Api(object):
       A sequence of twitter.DirectMessage instances
     '''
     url = '%s/direct_messages.json' % self.base_url
+    if not self._oauth_consumer:
+      raise TwitterError("The twitter.Api instance must be authenticated.")
+    parameters = {}
+    if since:
+      parameters['since'] = since
+    if since_id:
+      parameters['since_id'] = since_id
+    if page:
+      parameters['page'] = page
+    json = self._FetchUrl(url, parameters=parameters)
+    data = self._ParseAndCheckTwitter(json)
+    return [DirectMessage.NewFromJsonDict(x) for x in data]
+
+  def GetSentDirectMessages(self, since=None, since_id=None, page=None):
+    '''Returns a list of the direct messages sent by the authenticating user.
+
+    The twitter.Api instance must be authenticated.
+
+    Args:
+      since:
+        Narrows the returned results to just those statuses created
+        after the specified HTTP-formatted date. [Optional]
+      since_id:
+        Returns results with an ID greater than (that is, more recent
+        than) the specified ID. There are limits to the number of
+        Tweets which can be accessed through the API. If the limit of
+        Tweets has occured since the since_id, the since_id will be
+        forced to the oldest ID available. [Optional]
+      page:
+        Specifies the page of results to retrieve.
+        Note: there are pagination limits. [Optional]
+
+    Returns:
+      A sequence of twitter.DirectMessage instances
+    '''
+    url = '%s/direct_messages/sent.json' % self.base_url
     if not self._oauth_consumer:
       raise TwitterError("The twitter.Api instance must be authenticated.")
     parameters = {}
@@ -3313,7 +3441,7 @@ class Api(object):
         Returns results with an ID greater than (that is, more recent
         than) the specified ID. There are limits to the number of
         Tweets which can be accessed through the API. If the limit of
-        Tweets has occured since the since_id, the since_id will be
+        Tweets has occurred since the since_id, the since_id will be
         forced to the oldest ID available. [Optional]
       max_id:
         Returns only statuses with an ID less than
@@ -3643,7 +3771,7 @@ class Api(object):
     return 60
 
   def _BuildUrl(self, url, path_elements=None, extra_params=None):
-    # Break url into consituent parts
+    # Break url into constituent parts
     (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
 
     # Add any additional path elements to the path
@@ -3812,10 +3940,21 @@ class Api(object):
 
     http_handler  = self._urllib.HTTPHandler(debuglevel=_debug)
     https_handler = self._urllib.HTTPSHandler(debuglevel=_debug)
+    http_proxy = os.environ.get('http_proxy')
+    https_proxy = os.environ.get('https_proxy')
+
+    if http_proxy is None or  https_proxy is None :
+      proxy_status = False
+    else :
+      proxy_status = True
 
     opener = self._urllib.OpenerDirector()
     opener.add_handler(http_handler)
     opener.add_handler(https_handler)
+
+    if proxy_status is True :
+      proxy_handler = self._urllib.ProxyHandler({'http':str(http_proxy),'https': str(https_proxy)})
+      opener.add_handler(proxy_handler)
 
     if use_gzip_compression is None:
       use_gzip = self._use_gzip

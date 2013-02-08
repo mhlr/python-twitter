@@ -34,6 +34,7 @@ SIGNIN_URL        = 'https://api.twitter.com/oauth/authenticate'
 consumer_key    = None
 consumer_secret = None
 
+
 if consumer_key is None or consumer_secret is None:
   print 'You need to edit this script and provide values for the'
   print 'consumer_key and also consumer_secret.'
@@ -77,7 +78,7 @@ else:
   print ''
 
   oauth_client  = oauth.Client(oauth_consumer, token)
-  resp, content = oauth_client.request(ACCESS_TOKEN_URL, method='POST', body='oauth_verifier=%s' % pincode)
+  resp, content = oauth_client.request(ACCESS_TOKEN_URL, method='POST', body='oauth_callback=oob&oauth_verifier=%s' % pincode)
   access_token  = dict(parse_qsl(content))
 
   if resp['status'] != '200':
